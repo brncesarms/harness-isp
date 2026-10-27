@@ -159,6 +159,7 @@ class FloatingBallWidget(QWidget):
 
         # Telemetry Banner for Dynamic Island Pill
         self.telemetry_summary = "🟢 BGP: 4 Up  |  ⚡ 12ms  |  📶 -19.4 dBm"
+        self.has_glasses = True      # Óculos de grau estiloso Coucou Mochi
 
         # Animation Loop (~30 FPS)
         self.animation_timer = QTimer(self)
@@ -518,7 +519,11 @@ class FloatingBallWidget(QWidget):
         # 8. Expressive Mochi Eyes (Coucou: Positioned in the lower-third!)
         self._paint_eyes(painter, center_x, center_y, rx, ry)
 
-        # 9. Coucou Signature Shoulder Badge (Status Dot or Thinking Pill)
+        # 9. Coucou Round Reading Glasses (Óculos de Grau)
+        if self.has_glasses:
+            self._paint_glasses(painter, center_x, center_y, rx, ry)
+
+        # 10. Coucou Signature Shoulder Badge (Status Dot or Thinking Pill)
         self._paint_shoulder_badge(painter, center_x, center_y, rx, ry)
 
         # 10. Sleeping Zzz particles
@@ -728,6 +733,54 @@ class FloatingBallWidget(QWidget):
 
             painter.restore()
 
+    def _paint_glasses(self, painter: QPainter, cx: float, cy: float, rx: float, ry: float) -> None:
+        """Render Coucou's signature round reading/engineer glasses."""
+        eye_y = cy + ry * 0.38
+        eye_spacing = rx * 0.36
+        glass_r = 17.5 * self.squash_y
+        frame_color = QColor(42, 38, 34)  # Grafite escuro / tartaruga acetinado
+        lens_color = QColor(190, 225, 255, 45)  # Reflexo cristalino de lente de grau
+
+        look_dx = self.eye_look_x * 1.6
+        look_dy = self.eye_look_y * 1.4
+
+        left_x = cx - eye_spacing + look_dx
+        right_x = cx + eye_spacing + look_dx
+        actual_y = eye_y + look_dy
+
+        painter.save()
+
+        # 1. Hastes laterais (Temples)
+        painter.setPen(QPen(frame_color, 2.2, Qt.SolidLine, Qt.RoundCap))
+        painter.drawLine(QPointF(left_x - glass_r, actual_y - 2), QPointF(cx - rx * 0.94, actual_y - 6))
+        painter.drawLine(QPointF(right_x + glass_r, actual_y - 2), QPointF(cx + rx * 0.94, actual_y - 6))
+
+        # 2. Ponte nasal arqueada (Bridge)
+        bridge_path = QPainterPath()
+        bridge_path.moveTo(left_x + glass_r, actual_y - 1)
+        bridge_path.quadTo((left_x + right_x) / 2.0, actual_y - 6, right_x - glass_r, actual_y - 1)
+        painter.setBrush(Qt.NoBrush)
+        painter.drawPath(bridge_path)
+
+        # 3. Aros e Lentes com Glare Arc
+        for ex in (left_x, right_x):
+            lens_rect = QRectF(ex - glass_r, actual_y - glass_r, glass_r * 2, glass_r * 2)
+
+            # Lente de grau com preenchimento cristalino
+            painter.setBrush(QBrush(lens_color))
+            painter.setPen(QPen(frame_color, 2.4))
+            painter.drawEllipse(lens_rect)
+
+            # Brilho de reflexo de lente (Glare)
+            glare_path = QPainterPath()
+            glare_path.arcMoveTo(lens_rect.adjusted(3, 3, -3, -3), 125)
+            glare_path.arcTo(lens_rect.adjusted(3, 3, -3, -3), 125, 45)
+            painter.setBrush(Qt.NoBrush)
+            painter.setPen(QPen(QColor(255, 255, 255, 150), 1.6, Qt.SolidLine, Qt.RoundCap))
+            painter.drawPath(glare_path)
+
+        painter.restore()
+
     def _paint_sleeping_indicators(self, painter: QPainter, cx: float, cy: float, rx: float, ry: float) -> None:
         """Render floating 'Zzz' particles when asleep."""
         painter.save()
@@ -781,6 +834,16 @@ class FloatingBallWidget(QWidget):
         look_dx = self.eye_look_x * 1.2
         painter.drawEllipse(QPointF(mini_cx - 4.5 + look_dx, mini_cy + 3.0), 1.8, 2.5)
         painter.drawEllipse(QPointF(mini_cx + 4.5 + look_dx, mini_cy + 3.0), 1.8, 2.5)
+
+        # Mini Glasses
+        if self.has_glasses:
+            mini_ey = mini_cy + 3.0
+            mini_gr = 4.2
+            painter.setPen(QPen(QColor(42, 38, 34), 1.1))
+            painter.setBrush(QBrush(QColor(190, 225, 255, 60)))
+            painter.drawEllipse(QPointF(mini_cx - 4.5 + look_dx, mini_ey), mini_gr, mini_gr)
+            painter.drawEllipse(QPointF(mini_cx + 4.5 + look_dx, mini_ey), mini_gr, mini_gr)
+            painter.drawLine(QPointF(mini_cx - 4.5 + look_dx + mini_gr, mini_ey), QPointF(mini_cx + 4.5 + look_dx - mini_gr, mini_ey))
 
         # Mini Shoulder Dot
         painter.setBrush(QBrush(QColor(16, 185, 129)))
