@@ -1,0 +1,16 @@
+[Unit]
+Description=HarnessISP Desktop Companion (Coucou HUD)
+Documentation=https://github.com/brncesarms/harness-isp
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/harness-isp
+Environment=QT_QPA_PLATFORM=xcb
+ExecStart=/bin/bash -c "exec $HOME/.local/bin/uv run python3 main.py"
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=graphical-session.target

@@ -13,24 +13,45 @@ import subprocess
 import sys
 from pathlib import Path
 
-from PySide6.QtCore import QObject, QPoint, QTimer, Signal
-from PySide6.QtWidgets import QApplication
 
-from core.failsafe_guard import FailsafeGuard
-from core.session import BallState, SessionManager
-from core.storage import StorageManager
-from gui.approval_pill import ApprovalPillWidget
-from gui.tray import TrayManager
-from gui.widget import FloatingBallWidget
+try:
+    from PySide6.QtCore import QObject, QPoint, QTimer, Signal
+    from PySide6.QtWidgets import QApplication
+
+    from core.failsafe_guard import FailsafeGuard
+    from core.session import BallState, SessionManager
+    from core.storage import StorageManager
+    from gui.approval_pill import ApprovalPillWidget
+    from gui.tray import TrayManager
+    from gui.widget import FloatingBallWidget
+    HAS_GUI = True
+except ImportError:
+    HAS_GUI = False
+    QObject = object  # type: ignore
+
+
+def check_display_environment() -> None:
+    """Check if graphical display server is available before loading Qt."""
+    print("\n⚡ HarnessISP Desktop Companion (Coucou Architecture)")
+    print("━" * 60)
+    print("⚠️  Nenhum servidor gráfico detectado (ambiente headless / SSH).")
+    print("ℹ️  O Mascote Coucou foi concebido para rodar no seu Desktop físico (Omarchy / Hyprland).")
+    print("\n👉 Para interagir com o agente neste terminal:")
+    print("   python3 cli.py chat")
+    print("   ou")
+    print("   agy\n")
+    sys.exit(0)
 
 
 def launch_native_terminal(project_dir: Path | None = None) -> None:
     """Launches default terminal directly into the agy CLI session."""
     cwd = str(project_dir or Path(__file__).resolve().parent)
-    remote_host = os.environ.get("HARNESS_REMOTE_HOST")
+    current_host = socket.gethostname()
+    default_remote = "harness-isp" if current_host not in ("harness-isp",) else None
+    remote_host = os.environ.get("HARNESS_REMOTE_HOST", default_remote)
 
     if remote_host:
-        target_cmd = f"ssh -t {remote_host} 'agy'"
+        target_cmd = f"ssh -t {remote_host} 'cd ~/harness-isp && agy'"
     else:
         target_cmd = f"cd {cwd} && agy"
 
@@ -159,6 +180,10 @@ class HarnessISPApp(QObject):
 
 
 def main() -> None:
+    has_display = bool(os.environ.get("WAYLAND_DISPLAY") or os.environ.get("DISPLAY"))
+    if not HAS_GUI or not has_display:
+        check_display_environment()
+
     if "WAYLAND_DISPLAY" in os.environ and "QT_QPA_PLATFORM" not in os.environ:
         os.environ["QT_QPA_PLATFORM"] = "xcb"
 

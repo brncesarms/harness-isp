@@ -113,24 +113,28 @@ harness-isp/
 
 ## 🚀 Como Executar
 
-### 1. Iniciar o Companion no Desktop
+### 1. Iniciar o Companion no Desktop (Workstation / Omarchy / Alienware)
+
+O mascote é um **HUD gráfico** que roda localmente na sua estação de trabalho (com display Wayland/X11). Ao ser clicado, ele abre automaticamente o seu terminal conectando via SSH ao CT 249 (`harness-isp`) executando a `agy`.
 
 ```bash
-# Clone o repositório
-git clone https://github.com/brncesarms/harness-isp.git
-cd harness-isp
+# Na sua máquina física com tela:
+cd ~/harness-isp
 
-# Crie e ative o ambiente virtual
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+# Instalação rápida no menu de aplicativos (Rofi / Walker / Hyprland):
+./scripts/install-desktop.sh
 
-# Inicie o companion
-python3 main.py
+# Ou execução direta via uv:
+uv run python3 main.py
 ```
-> *Ao clicar no mascote, seu terminal padrão abrirá instantaneamente na sessão interativa da `agy` com modelos Gemini.*
+> *Ao clicar no mascote, seu terminal padrão (`ghostty`, `kitty`, `foot`, etc.) abrirá instantaneamente na sessão interativa da `agy` no servidor de telecom.*
 
-### 2. Acesso Direto via CLI
+#### Inicialização Automática no Login (Opcional):
+```bash
+systemctl --user enable --now harness-isp-companion.service
+```
+
+### 2. Acesso Direto via CLI (Headless / SSH)
 
 ```bash
 # Iniciar a sessão interativa no terminal atual

@@ -15,6 +15,11 @@ import subprocess
 import sys
 from pathlib import Path
 
+# Ensure ~/.local/bin is in PATH
+local_bin = str(Path.home() / ".local/bin")
+if local_bin not in os.environ.get("PATH", ""):
+    os.environ["PATH"] = f"{local_bin}:{os.environ.get('PATH', '')}"
+
 from core.failsafe_guard import FailsafeGuard
 from core.memory_rag import MemoryRAG
 from core.reflect import create_reflection_note
@@ -32,7 +37,8 @@ def cmd_status() -> None:
     print(f"  • Workspace: {storage.root}")
     print(f"  • Host: {socket.gethostname()}")
     print(f"  • RTK Nativo (Rust): {'✅ ATIVO' if has_rtk else '⚠️ INATIVO'}")
-    print(f"  • Google AGY CLI: {'✅ ATIVO (/home/brn/.local/bin/agy)' if shutil.which('agy') else '⚠️ NÃO ENCONTRADO'}")
+    agy_exists = bool(shutil.which('agy') or Path(local_bin, 'agy').exists())
+    print(f"  • Google AGY CLI: {'✅ ATIVO (~/.local/bin/agy)' if agy_exists else '⚠️ NÃO ENCONTRADO'}")
     print(f"  • Base Wiki (SSOT): {len(wiki_notes)} notas em {Path(__file__).parent / 'wiki'}")
     print(f"  • Memória SQLite FTS5: {storage.memory_dir / 'knowledge.db'}")
 
