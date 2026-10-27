@@ -1,13 +1,15 @@
-"""Main entrypoint for HarnessISP Desktop Application (Google AGY Edition).
+"""Main entrypoint for HarnessISP Desktop Companion (Coucou Architecture).
 
-Integrates the expressive desktop companion, dynamic island pill, pre-flight
-approval dialogs, and instant Google Antigravity CLI launch on click.
+Acts as a living desktop companion and pre-flight HUD on the workstation,
+launching the user's native terminal directly into the canonical CT 249
+HarnessISP workspace running the Google Antigravity CLI (agy).
 """
 
 from __future__ import annotations
 
 import os
 import shutil
+import socket
 import subprocess
 import sys
 from pathlib import Path
@@ -16,58 +18,55 @@ from PySide6.QtCore import QObject, QPoint, QTimer, Signal
 from PySide6.QtWidgets import QApplication
 
 from core.failsafe_guard import FailsafeGuard
-from core.ftth_engine import FTTHEngine
-from core.memory_rag import MemoryRAG
 from core.session import BallState, SessionManager
 from core.storage import StorageManager
-from core.token_optimizer import TokenOptimizer
-from core.vault import VaultManager
 from gui.approval_pill import ApprovalPillWidget
 from gui.tray import TrayManager
 from gui.widget import FloatingBallWidget
 
 
-def launch_native_terminal(project_dir: Path) -> None:
-    """Launches the default system terminal running the official Google Antigravity CLI (agy)."""
-    cwd = str(project_dir)
-    # Direct launch into Google Antigravity CLI in the project directory
-    script_cmd = f"cd {cwd} && agy"
+def launch_native_terminal(project_dir: Path | None = None) -> None:
+    """Launches default terminal directly into CT 249 /home/brn/harness-isp with agy CLI."""
+    current_host = socket.gethostname()
+
+    # Remote workstation -> SSH directly into CT 249
+    if current_host != "harness-isp":
+        target_cmd = "ssh -t harness-isp 'cd /home/brn/harness-isp && export PATH=$HOME/.local/bin:$PATH && agy'"
+    else:
+        target_cmd = "cd /home/brn/harness-isp && export PATH=$HOME/.local/bin:$PATH && agy"
 
     term = os.environ.get("TERMINAL")
     candidates: list[list[str]] = []
     if term:
-        candidates.append([term, "-e", "bash", "-c", script_cmd])
+        candidates.append([term, "-e", "bash", "-c", target_cmd])
 
     candidates.extend([
-        ["xdg-terminal-exec", "bash", "-c", script_cmd],
-        ["kitty", "--directory", cwd, "bash", "-c", script_cmd],
-        ["foot", "-D", cwd, "bash", "-c", script_cmd],
-        ["ghostty", f"--working-directory={cwd}", "-e", "bash", "-c", script_cmd],
-        ["alacritty", "--working-directory", cwd, "-e", "bash", "-c", script_cmd],
-        ["x-terminal-emulator", "-e", "bash", "-c", script_cmd],
-        ["gnome-terminal", f"--working-directory={cwd}", "--", "bash", "-c", script_cmd],
-        ["konsole", "--workdir", cwd, "-e", "bash", "-c", script_cmd],
-        ["xfce4-terminal", f"--working-directory={cwd}", "-e", "bash", "-c", script_cmd],
+        ["xdg-terminal-exec", "bash", "-c", target_cmd],
+        ["kitty", "bash", "-c", target_cmd],
+        ["foot", "bash", "-c", target_cmd],
+        ["ghostty", "-e", "bash", "-c", target_cmd],
+        ["alacritty", "-e", "bash", "-c", target_cmd],
+        ["x-terminal-emulator", "-e", "bash", "-c", target_cmd],
+        ["gnome-terminal", "--", "bash", "-c", target_cmd],
     ])
 
     for cmd in candidates:
         bin_name = cmd[0]
         if shutil.which(bin_name):
             try:
-                subprocess.Popen(cmd, cwd=cwd, start_new_session=True)
+                subprocess.Popen(cmd, start_new_session=True)
                 return
             except Exception:
                 continue
 
-    # Fallback
     try:
-        subprocess.Popen(["bash", "-c", script_cmd], cwd=cwd, start_new_session=True)
+        subprocess.Popen(["bash", "-c", target_cmd], start_new_session=True)
     except Exception:
         pass
 
 
 class HarnessISPApp(QObject):
-    """Orchestrates HarnessISP Desktop Companion with Google AGY CLI integration."""
+    """Orchestrates HarnessISP Desktop Companion with direct CT 249 agy terminal launch."""
 
     def __init__(self) -> None:
         super().__init__()
@@ -76,9 +75,6 @@ class HarnessISPApp(QObject):
         self.storage = StorageManager()
         self.storage.initialize()
         self.project_dir = Path(__file__).resolve().parent
-
-        self.vault = VaultManager(self.storage.vault_dir)
-        self.memory = MemoryRAG(self.storage.memory_dir / "knowledge.db")
         self.session = SessionManager()
 
         # 2. GUI Components (Companion Sphere + Pre-flight Approval Pill)
@@ -90,10 +86,13 @@ class HarnessISPApp(QObject):
             on_quit=self.quit,
         )
 
-        # 3. Wiring: Click opens GOOGLE AGY CLI in the system terminal
+        # 3. Wiring: Click launches Kitty directly into CT 249 agy
         self.ball.clicked.connect(self.open_terminal)
         self.ball.file_dropped.connect(self.handle_file_drop)
         self.approval_pill.action_decided.connect(self.handle_approval_decision)
+
+        # Telemetry Pill: Highlights canonical SSOT on CT 249
+        self.ball.set_telemetry("⚡ CT 249: agy online  |  🛡️ Safe Mode ON  |  MikroTik 10.0.0.1")
 
         # Position widget initially on screen
         self.ball.move(120, 80)
@@ -108,14 +107,14 @@ class HarnessISPApp(QObject):
             self.ball.show()
 
     def open_terminal(self) -> None:
-        """Launch Google Antigravity CLI session in the user's terminal."""
+        """Launch terminal connected via SSH into CT 249 running agy."""
         self.ball.set_ball_state(BallState.PROCESSING)
         launch_native_terminal(self.project_dir)
         QTimer.singleShot(1500, lambda: self.ball.set_ball_state(BallState.IDLE_OK))
 
     # --- Coucou-inspired Context Dropping ---
     def handle_file_drop(self, file_path_str: str) -> None:
-        """Analyze network files (.rsc, .log, .csv, .txt) dropped onto the companion."""
+        """Analyze network files (.rsc, .log, .csv) dropped onto the companion."""
         path = Path(file_path_str)
         if not path.exists():
             return
@@ -134,7 +133,7 @@ class HarnessISPApp(QObject):
             if audit.level == "CRITICAL":
                 self.ball.set_ball_state(BallState.ALERT)
                 self.approval_pill.prompt(
-                    command=f"Executar script {path.name}",
+                    command=f"Auditar e executar script {path.name} no CT 249",
                     risk_level=audit.level,
                     reason=audit.summary,
                     anchor_pos=self.ball.pos(),
