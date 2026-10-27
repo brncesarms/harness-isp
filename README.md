@@ -11,12 +11,13 @@
 
 O mascote na sua área de trabalho funciona como um **HUD / Desktop Companion vivo**:
 
-* **Presença Não-Intrusiva:** Fica flutuando livremente na área de trabalho ou ancorado no topo em formato de **Dynamic Island**.
-* **Feedback Visual em Tempo Real:** Expressa visualmente o estado da infraestrutura através de animações táteis e halos dinâmicos:
-  * 🟢 **Vigilante / Normal:** Rede estável, latência baixa, respiração calma.
-  * 🟡 **Escaneando:** Olhos em varredura de scanner (MTR, Ping, OLT Autofind).
-  * 🔴 **Alerta Crítico:** Olhos arregalados e pulsação rápida ao detectar risco de lockout ou atenuação severa de fibra (< -27 dBm).
-* **Context Dropping:** Serve como zona de arrastar e soltar direta para scripts `.rsc` do MikroTik, dumps de OLT e logs de BGP para auditoria pré-flight instantânea.
+* **Anatomia Coucou Mochi & Presença Viva:** Inspirado fielmente no companion de código [Louis-CFM/coucou](https://github.com/Louis-CFM/coucou):
+  * **Superelipse Aveludada (Squircle Mochi):** Corpo superelíptico clássico (fórmula da superelipse com expoente 2.0/2.7) com acabamento pérola acetinado, bochechas coradas translúcidas e iluminação sutil de estado (tint esmeralda/ciano em repouso, azul elétrico em processamento e vermelho carmesim em alerta).
+  * **Cursor Gaze Tracking em Tempo Real:** Olhos no formato pílula com catchlight de brilho que acompanham o ponteiro do mouse na tela através de mapeamento suave com tangente hiperbólica (`tanh`), piscando naturalmente a cada 3 a 5 segundos.
+  * **Interação Tátil (Poke & Dizzy):** Ao clicar, ele reage com amortecimento elástico e bochechas coradas. Se o operador cutucá-lo rapidamente (3 cliques consecutivos), ele fica temporariamente tonto (**Dizzy**) com olhos em espirais giratórias e balanço de cabeça!
+  * **Context Dropping & Mailbox Morph:** Ao arrastar scripts `.rsc`, logs de BGP ou dumps de OLT sobre o mascote, ele abre uma abertura de correio animada no topo da cabeça, engole o arquivo e mastiga feliz (`happy ^ ^`), disparando a análise pré-flight.
+  * **Happy Celebration Jump:** Ao concluir tarefas operacionais, diagnósticos ou restabelecer enlaces, executa um salto elástico de celebração com olhinhos sorridentes (`happy ^ ^`).
+  * **Dynamic Island (Pill Mode):** Duplo clique alterna suavemente entre o mascote squircle e a pílula horizontal dark-glass com telemetria live do NOC (BGP, latência, potência óptica FTTH) e mini-avatar Mochi.
 * **Ao ser clicado:** Abre imediatamente o seu terminal padrão do sistema (**Kitty, Ghostty, Foot, Alacritty, Windows Terminal**) executando a sessão da **Google Antigravity CLI (`agy`)**:
   ```bash
   agy
@@ -105,7 +106,7 @@ harness-isp/
 │   ├── approval_pill.py        # Pílula flutuante de autorização rápida pré-flight
 │   └── tray.py                 # Ícone na bandeja do sistema
 ├── wiki/                       # Base de conhecimento SSOT em Markdown (Obsidian)
-└── tests/                      # Suíte de testes automatizados com pytest (20 testes)
+└── tests/                      # Suíte de testes automatizados com pytest (23 testes automatizados)
 ```
 
 ---
