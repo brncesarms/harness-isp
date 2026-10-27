@@ -19,6 +19,7 @@
 6. **Automação FTTH Multivendor:** Suporte estrito aos padrões de telemetria óptica (Class B+/C+) e comandos de descoberta/provisionamento para Huawei, ZTE, Fiberhome e Datacom em `core/ftth_engine.py`.
 7. **Rigor Karpathy (Primeiros Princípios em NOC):** Diagnósticos de falhas de rede devem obrigatoriamente validar a Camada Física L1 (potência óptica dBm, link up/down) e Camada de Enlace L2 (VLANs, MTU, erros CRC) antes de assumir incidentes em Camada 3 (BGP/OSPF/Roteamento).
 8. **Desktop Companion & Context Dropping (Estilo Coucou):** O assistente vive no Desktop do operador com reações táteis, modo Dynamic Island e permite arrastar e soltar arquivos `.rsc`, `.log`, `.csv` diretamente sobre o mascote para auditoria e diagnósticos imediatos.
+9. **Identidade Visual e Mascote Coucou (TUI & Antigravity 2.0):** No início de uma nova conversa no terminal `agy` ou no Antigravity 2.0, o agente deve incorporar a identidade do Coucou Companion do HarnessISP, exibindo a saudação visual do mascote e o status de sentinela do NOC (🛡️ Safe Mode, host ativo e prontidão de telemetria) para manter a continuidade de HUD vivo em todas as superfícies.
 
 ---
 
