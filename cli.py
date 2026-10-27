@@ -2,13 +2,14 @@
 """Unified CLI for HarnessISP.
 
 Deterministic single-line interface for tests, wiki reflection, RAG sync, audits,
-and interactive terminal chat.
+and Google Antigravity CLI session.
 """
 
 from __future__ import annotations
 
 import argparse
 import os
+import shutil
 import socket
 import subprocess
 import sys
@@ -31,6 +32,7 @@ def cmd_status() -> None:
     print(f"  • Workspace: {storage.root}")
     print(f"  • Host: {socket.gethostname()}")
     print(f"  • RTK Nativo (Rust): {'✅ ATIVO' if has_rtk else '⚠️ INATIVO'}")
+    print(f"  • Google AGY CLI: {'✅ ATIVO (/home/brn/.local/bin/agy)' if shutil.which('agy') else '⚠️ NÃO ENCONTRADO'}")
     print(f"  • Base Wiki (SSOT): {len(wiki_notes)} notas em {Path(__file__).parent / 'wiki'}")
     print(f"  • Memória SQLite FTS5: {storage.memory_dir / 'knowledge.db'}")
 
@@ -74,48 +76,12 @@ def cmd_audit() -> None:
 
 
 def cmd_chat() -> None:
-    """Interactive terminal session in the user's native system terminal."""
-    from core.cli_bridge import AntigravityCLIBridge
-
-    storage = StorageManager()
-    storage.initialize()
-    rag = MemoryRAG(storage.memory_dir / "knowledge.db")
-    bridge = AntigravityCLIBridge()
-    host = socket.gethostname()
-
-    print("=" * 68)
-    print("⚡ HarnessISP — Terminal Operacional de Redes & NOC")
-    print(f"• Host Local: {host} | SSOT: CT 249 (Debian 13 Proxmox)")
-    print(f"• Autoridade: Bruno Cesar | Repositório: brncesarms/harness-isp")
-    print(f"• Motor IA: Ollama Lab (qwen3-coder:30b) + FailsafeGuard")
-    print("=" * 68)
-    print("Digite sua consulta técnica, cole saídas de CLI ou 'sair' para encerrar.\n")
-
-    while True:
-        try:
-            user_input = input("[harness-isp]> ").strip()
-        except (KeyboardInterrupt, EOFError):
-            print("\nSaindo do HarnessISP...")
-            break
-
-        if not user_input:
-            continue
-        if user_input.lower() in ("sair", "exit", "quit"):
-            break
-
-        # Pre-flight check
-        risk = FailsafeGuard.audit_mikrotik_script(user_input)
-        if risk.level in ("CRITICAL", "MEDIUM"):
-            print(f"\n⚠️  ALERTA PRE-FLIGHT [{risk.level}]: {risk.summary}")
-            print("Recomendação: Aplicar com Safe-Mode RouterOS ou abortar.\n")
-
-        # RAG Search
-        matches = rag.search(user_input, limit=2)
-        ctx = "\n".join([f"[{m.title}]: {m.snippet}" for m in matches]) if matches else None
-
-        print("\n⏳ Consultando motor de rede...")
-        resp = bridge.generate_response(user_input, context=ctx)
-        print(f"\n{resp}\n")
+    """Start official Google Antigravity CLI session in the current terminal."""
+    agy_bin = shutil.which("agy") or os.path.expanduser("~/.local/bin/agy")
+    if os.path.exists(agy_bin):
+        os.execvp(agy_bin, [agy_bin])
+    else:
+        print("❌ Binário agy não encontrado em ~/.local/bin/agy nem no PATH.")
 
 
 def main() -> None:
@@ -131,8 +97,8 @@ def main() -> None:
     # Audit
     subparsers.add_parser("audit", help="Auditoria completa de segurança, links e testes")
 
-    # Chat Interativo no Terminal
-    subparsers.add_parser("chat", help="Iniciar chat interativo no terminal padrão")
+    # Chat Interativo no Terminal com Google agy
+    subparsers.add_parser("chat", help="Iniciar sessão da Google Antigravity CLI (agy)")
 
     # Reflect
     reflect_p = subparsers.add_parser("reflect", help="Registrar lição aprendida / post-mortem")

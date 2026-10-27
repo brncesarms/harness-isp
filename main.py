@@ -1,7 +1,7 @@
-"""Main entrypoint for HarnessISP Desktop Application (Coucou-Inspired Edition).
+"""Main entrypoint for HarnessISP Desktop Application (Google AGY Edition).
 
 Integrates the expressive desktop companion, dynamic island pill, pre-flight
-approval dialogs, and native system terminal launch on click.
+approval dialogs, and instant Google Antigravity CLI launch on click.
 """
 
 from __future__ import annotations
@@ -28,9 +28,10 @@ from gui.widget import FloatingBallWidget
 
 
 def launch_native_terminal(project_dir: Path) -> None:
-    """Launches the user's default system terminal with the interactive HarnessISP shell."""
+    """Launches the default system terminal running the official Google Antigravity CLI (agy)."""
     cwd = str(project_dir)
-    script_cmd = f"cd {cwd} && source .venv/bin/activate 2>/dev/null; python3 cli.py chat || bash"
+    # Direct launch into Google Antigravity CLI in the project directory
+    script_cmd = f"cd {cwd} && agy"
 
     term = os.environ.get("TERMINAL")
     candidates: list[list[str]] = []
@@ -58,7 +59,7 @@ def launch_native_terminal(project_dir: Path) -> None:
             except Exception:
                 continue
 
-    # Fallback to direct bash
+    # Fallback
     try:
         subprocess.Popen(["bash", "-c", script_cmd], cwd=cwd, start_new_session=True)
     except Exception:
@@ -66,7 +67,7 @@ def launch_native_terminal(project_dir: Path) -> None:
 
 
 class HarnessISPApp(QObject):
-    """Orchestrates HarnessISP Desktop Companion with native terminal integration."""
+    """Orchestrates HarnessISP Desktop Companion with Google AGY CLI integration."""
 
     def __init__(self) -> None:
         super().__init__()
@@ -89,7 +90,7 @@ class HarnessISPApp(QObject):
             on_quit=self.quit,
         )
 
-        # 3. Wiring: Click opens the DEFAULT SYSTEM TERMINAL
+        # 3. Wiring: Click opens GOOGLE AGY CLI in the system terminal
         self.ball.clicked.connect(self.open_terminal)
         self.ball.file_dropped.connect(self.handle_file_drop)
         self.approval_pill.action_decided.connect(self.handle_approval_decision)
@@ -107,7 +108,7 @@ class HarnessISPApp(QObject):
             self.ball.show()
 
     def open_terminal(self) -> None:
-        """Launch native system terminal (Kitty/Ghostty/Foot/XDG) on companion click."""
+        """Launch Google Antigravity CLI session in the user's terminal."""
         self.ball.set_ball_state(BallState.PROCESSING)
         launch_native_terminal(self.project_dir)
         QTimer.singleShot(1500, lambda: self.ball.set_ball_state(BallState.IDLE_OK))
@@ -140,8 +141,6 @@ class HarnessISPApp(QObject):
                 )
             else:
                 self.ball.set_ball_state(BallState.IDLE_OK)
-                # Opens native terminal with the validated safe script
-                safe_script = FailsafeGuard.wrap_in_safe_mode(content)
                 self.open_terminal()
         else:
             self.ball.set_ball_state(BallState.IDLE_OK)
