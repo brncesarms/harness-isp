@@ -734,12 +734,14 @@ class FloatingBallWidget(QWidget):
             painter.restore()
 
     def _paint_glasses(self, painter: QPainter, cx: float, cy: float, rx: float, ry: float) -> None:
-        """Render Coucou's signature round reading/engineer glasses."""
+        """Render Coucou's signature square glasses (quadrado com cantos arredondados)."""
         eye_y = cy + ry * 0.38
         eye_spacing = rx * 0.36
-        glass_r = 17.5 * self.squash_y
-        frame_color = QColor(42, 38, 34)  # Grafite escuro / tartaruga acetinado
-        lens_color = QColor(190, 225, 255, 45)  # Reflexo cristalino de lente de grau
+        gw = 32.0 * self.squash_x   # Largura do aro quadrado
+        gh = 30.0 * self.squash_y   # Altura do aro quadrado
+        corner_r = 8.0              # Cantos arredondados
+        frame_color = QColor(18, 18, 22)
+        pen_frame = QPen(frame_color, 2.8, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
 
         look_dx = self.eye_look_x * 1.6
         look_dy = self.eye_look_y * 1.4
@@ -750,34 +752,25 @@ class FloatingBallWidget(QWidget):
 
         painter.save()
 
-        # 1. Hastes laterais (Temples)
-        painter.setPen(QPen(frame_color, 2.2, Qt.SolidLine, Qt.RoundCap))
-        painter.drawLine(QPointF(left_x - glass_r, actual_y - 2), QPointF(cx - rx * 0.94, actual_y - 6))
-        painter.drawLine(QPointF(right_x + glass_r, actual_y - 2), QPointF(cx + rx * 0.94, actual_y - 6))
+        # 1. Hastes laterais horizontais pretas
+        painter.setPen(QPen(frame_color, 2.4, Qt.SolidLine, Qt.RoundCap))
+        painter.drawLine(QPointF(left_x - gw / 2.0, actual_y), QPointF(cx - rx * 0.95, actual_y))
+        painter.drawLine(QPointF(right_x + gw / 2.0, actual_y), QPointF(cx + rx * 0.95, actual_y))
 
         # 2. Ponte nasal arqueada (Bridge)
         bridge_path = QPainterPath()
-        bridge_path.moveTo(left_x + glass_r, actual_y - 1)
-        bridge_path.quadTo((left_x + right_x) / 2.0, actual_y - 6, right_x - glass_r, actual_y - 1)
+        bridge_path.moveTo(left_x + gw / 2.0, actual_y - 2)
+        bridge_path.quadTo(cx, actual_y - 7, right_x - gw / 2.0, actual_y - 2)
         painter.setBrush(Qt.NoBrush)
+        painter.setPen(pen_frame)
         painter.drawPath(bridge_path)
 
-        # 3. Aros e Lentes com Glare Arc
+        # 3. Aros Quadrados com cantos arredondados (Squircle Frames)
         for ex in (left_x, right_x):
-            lens_rect = QRectF(ex - glass_r, actual_y - glass_r, glass_r * 2, glass_r * 2)
-
-            # Lente de grau com preenchimento cristalino
-            painter.setBrush(QBrush(lens_color))
-            painter.setPen(QPen(frame_color, 2.4))
-            painter.drawEllipse(lens_rect)
-
-            # Brilho de reflexo de lente (Glare)
-            glare_path = QPainterPath()
-            glare_path.arcMoveTo(lens_rect.adjusted(3, 3, -3, -3), 125)
-            glare_path.arcTo(lens_rect.adjusted(3, 3, -3, -3), 125, 45)
+            rect = QRectF(ex - gw / 2.0, actual_y - gh / 2.0, gw, gh)
             painter.setBrush(Qt.NoBrush)
-            painter.setPen(QPen(QColor(255, 255, 255, 150), 1.6, Qt.SolidLine, Qt.RoundCap))
-            painter.drawPath(glare_path)
+            painter.setPen(pen_frame)
+            painter.drawRoundedRect(rect, corner_r, corner_r)
 
         painter.restore()
 
@@ -835,15 +828,15 @@ class FloatingBallWidget(QWidget):
         painter.drawEllipse(QPointF(mini_cx - 4.5 + look_dx, mini_cy + 3.0), 1.8, 2.5)
         painter.drawEllipse(QPointF(mini_cx + 4.5 + look_dx, mini_cy + 3.0), 1.8, 2.5)
 
-        # Mini Glasses
+        # Mini Square Glasses
         if self.has_glasses:
             mini_ey = mini_cy + 3.0
-            mini_gr = 4.2
-            painter.setPen(QPen(QColor(42, 38, 34), 1.1))
-            painter.setBrush(QBrush(QColor(190, 225, 255, 60)))
-            painter.drawEllipse(QPointF(mini_cx - 4.5 + look_dx, mini_ey), mini_gr, mini_gr)
-            painter.drawEllipse(QPointF(mini_cx + 4.5 + look_dx, mini_ey), mini_gr, mini_gr)
-            painter.drawLine(QPointF(mini_cx - 4.5 + look_dx + mini_gr, mini_ey), QPointF(mini_cx + 4.5 + look_dx - mini_gr, mini_ey))
+            mgw, mgh = 8.5, 7.5
+            painter.setPen(QPen(QColor(18, 18, 22), 1.2, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+            painter.setBrush(Qt.NoBrush)
+            painter.drawRoundedRect(QRectF(mini_cx - 4.5 + look_dx - mgw/2, mini_ey - mgh/2, mgw, mgh), 2.0, 2.0)
+            painter.drawRoundedRect(QRectF(mini_cx + 4.5 + look_dx - mgw/2, mini_ey - mgh/2, mgw, mgh), 2.0, 2.0)
+            painter.drawLine(QPointF(mini_cx - 4.5 + look_dx + mgw/2, mini_ey - 1), QPointF(mini_cx + 4.5 + look_dx - mgw/2, mini_ey - 1))
 
         # Mini Shoulder Dot
         painter.setBrush(QBrush(QColor(16, 185, 129)))
