@@ -1,7 +1,7 @@
-"""Coucou-inspired Quick Approval Pill for High-Risk Network Commands.
+"""Quick Approval Pill for High-Risk Network Commands in HarnessISP.
 
 Presents an unobtrusive floating approval pill directly beneath or attached to
-the desktop companion, allowing 1-click authorization with Safe-Mode, Force,
+the desktop sentinela, allowing 1-click authorization with Safe-Mode, Force,
 or Abort options.
 """
 
@@ -93,7 +93,7 @@ class ApprovalPillWidget(QWidget):
         self.desc_label.setWordWrap(True)
         frame_layout.addWidget(self.desc_label)
 
-        # Action Buttons (Coucou Style: Safe Mode / Force / Abort)
+        # Action Buttons (Safe Mode / Force / Abort)
         btn_layout = QHBoxLayout()
         btn_layout.setSpacing(8)
 

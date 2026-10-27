@@ -127,13 +127,13 @@ class AntigravityCLIBridge:
         if any(trig in p_lower for trig in identity_triggers):
             current_host = socket.gethostname()
             return (
-                f"Olá! Eu sou o **HarnessISP**, assistente companion oficial operando com a **Google Antigravity CLI (`agy`)** "
+                f"Olá! Eu sou o **HarnessISP**, assistente sentinela oficial operando com a **Google Antigravity CLI (`agy`)** "
                 f"sob as regras do **`AGENTS.md`** no host `{current_host}`.\n\n"
                 f"🛡️ **Pilares de Atuação:**\n"
                 f"• **Google Gemini Engine:** Cognição avançada em nuvem para engenharia de telecomunicações.\n"
                 f"• **Blindagem Anti-Lockout:** Safe Mode inegociável em roteadores MikroTik e servidores Linux.\n"
                 f"• **Automação FTTH Multivendor:** Diagnósticos de sinal óptico (dBm) e perfis OLT (Huawei, ZTE, Fiberhome, Datacom).\n"
-                f"• **Terminal Nativo no Clique:** Dê um clique no mascote para abrir a sessão interativa da `agy` no seu terminal!\n\n"
+                f"• **Terminal Nativo no Clique:** Dê um clique no HUD do HarnessISP para abrir a sessão interativa da `agy` no seu terminal!\n\n"
                 f"Como posso ajudar na sua infraestrutura de rede hoje?"
             )
 

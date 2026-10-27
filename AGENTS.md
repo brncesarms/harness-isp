@@ -1,7 +1,7 @@
 # ⚡ HarnessISP — Assistente Desktop & Motor Operacional para ISPs
 
 > **Ambiente:** Servidor de Aplicação NOC / Workstation Linux | **Autoridade:** Engenharia de Redes & NOC  
-> **Motores:** Híbrido Universal (PySide6 Desktop Companion + Google Antigravity CLI `agy` / Gemini Cloud)  
+> **Motores:** Híbrido Universal (PySide6 Desktop Sentinela + Google Antigravity CLI `agy` / Gemini Cloud)  
 > **Token Economy:** RTK Hook (`core/token_optimizer.py`) | **Escudo:** Zero Leaks (`core/vault.py`)  
 > **Pilar Central:** Blindagem Anti-Lockout & Fail-Safe | **Repositório SSOT:** `brncesarms/harness-isp`
 
@@ -18,7 +18,7 @@
 5. **Token Economy & Compressão Nativa (RTK):** Saídas extensas de rede (`show ip bgp`, dumps de OLT, tabelas de rotas, MTR/Ping) devem ser filtradas com o binário nativo `rtk` (`/usr/bin/rtk` ou `~/.local/bin/rtk`) e sintetizadas via `core/token_optimizer.py`.
 6. **Automação FTTH Multivendor:** Suporte estrito aos padrões de telemetria óptica (Class B+/C+) e comandos de descoberta/provisionamento para Huawei, ZTE, Fiberhome e Datacom em `core/ftth_engine.py`.
 7. **Rigor Karpathy (Primeiros Princípios em NOC):** Diagnósticos de falhas de rede devem obrigatoriamente validar a Camada Física L1 (potência óptica dBm, link up/down) e Camada de Enlace L2 (VLANs, MTU, erros CRC) antes de assumir incidentes em Camada 3 (BGP/OSPF/Roteamento).
-8. **Desktop Companion & Context Dropping (Estilo Coucou):** O assistente vive no Desktop do operador com reações táteis, modo Dynamic Island e permite arrastar e soltar arquivos `.rsc`, `.log`, `.csv` diretamente sobre o mascote para auditoria e diagnósticos imediatos.
+8. **Desktop Sentinela & Context Dropping:** O HUD Sentinela vive no Desktop do operador com visual dark-glass, telemetria em tempo real, modo Dynamic Island e permite arrastar e soltar arquivos `.rsc`, `.log`, `.csv` diretamente sobre o widget para auditoria pré-flight e diagnósticos imediatos.
 
 ---
 
@@ -51,7 +51,7 @@
   ```bash
   python3 -m core.reflect --task "..." --lesson "..." --category "sops|incidentes|pops"
   ```
-* **Inicializar Assistente Desktop:**
+* **Inicializar Desktop Sentinela:**
   ```bash
   python3 main.py
   ```
@@ -60,14 +60,14 @@
 
 ## 4. Mapa de Navegação e Arquitetura
 
-* **Entrypoint GUI:** [main.py](file:///home/brn/harness-isp/main.py)
-* **Desktop Companion (Mascote & Island):** [gui/widget.py](file:///home/brn/harness-isp/gui/widget.py)
-* **Pílula de Pré-flight Approval:** [gui/approval_pill.py](file:///home/brn/harness-isp/gui/approval_pill.py)
-* **Ponte Oficial Google AGY CLI:** [core/cli_bridge.py](file:///home/brn/harness-isp/core/cli_bridge.py)
-* **Guarda Anti-Lockout:** [core/failsafe_guard.py](file:///home/brn/harness-isp/core/failsafe_guard.py)
-* **Motor FTTH & OLTs:** [core/ftth_engine.py](file:///home/brn/harness-isp/core/ftth_engine.py)
-* **Cofre Criptografado (Zero Leaks):** [core/vault.py](file:///home/brn/harness-isp/core/vault.py)
-* **Compressor RTK Nativo:** [core/token_optimizer.py](file:///home/brn/harness-isp/core/token_optimizer.py)
-* **Memória RAG FTS5:** [core/memory_rag.py](file:///home/brn/harness-isp/core/memory_rag.py)
-* **Gerador de Reflexão:** [core/reflect.py](file:///home/brn/harness-isp/core/reflect.py)
-* **Especificação Master:** [prompt-harness-isp-v3.md](file:///home/brn/harness-isp/prompt-harness-isp-v3.md)
+* **Entrypoint GUI:** [main.py](file:///home/brn/workspaces/ct249-harness-isp/main.py)
+* **Desktop Sentinela (HUD & Island):** [gui/widget.py](file:///home/brn/workspaces/ct249-harness-isp/gui/widget.py)
+* **Pílula de Pré-flight Approval:** [gui/approval_pill.py](file:///home/brn/workspaces/ct249-harness-isp/gui/approval_pill.py)
+* **Ponte Oficial Google AGY CLI:** [core/cli_bridge.py](file:///home/brn/workspaces/ct249-harness-isp/core/cli_bridge.py)
+* **Guarda Anti-Lockout:** [core/failsafe_guard.py](file:///home/brn/workspaces/ct249-harness-isp/core/failsafe_guard.py)
+* **Motor FTTH & OLTs:** [core/ftth_engine.py](file:///home/brn/workspaces/ct249-harness-isp/core/ftth_engine.py)
+* **Cofre Criptografado (Zero Leaks):** [core/vault.py](file:///home/brn/workspaces/ct249-harness-isp/core/vault.py)
+* **Compressor RTK Nativo:** [core/token_optimizer.py](file:///home/brn/workspaces/ct249-harness-isp/core/token_optimizer.py)
+* **Memória RAG FTS5:** [core/memory_rag.py](file:///home/brn/workspaces/ct249-harness-isp/core/memory_rag.py)
+* **Gerador de Reflexão:** [core/reflect.py](file:///home/brn/workspaces/ct249-harness-isp/core/reflect.py)
+* **Especificação Master:** [prompt-harness-isp-v3.md](file:///home/brn/workspaces/ct249-harness-isp/prompt-harness-isp-v3.md)

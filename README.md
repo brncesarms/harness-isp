@@ -1,27 +1,24 @@
-# ⚡ HarnessISP — Desktop Companion Inteligente para Redes e Provedores (ISPs)
+# ⚡ HarnessISP — Sentinela Desktop Inteligente para Redes e Provedores (ISPs)
 
-> **Arquitetura Soberana:** Desktop Companion (Workstation do Operador) ⇄ Motor de Redes NOC ⇄ Google Antigravity CLI (`agy`)  
+> **Arquitetura Soberana:** Desktop Sentinela (Workstation do Operador) ⇄ Motor de Redes NOC ⇄ Google Antigravity CLI (`agy`)  
 > **Especialidade:** Engenharia de Redes, FTTH/GPON & NOC Operacional  
-> **Pilar Central:** Blindagem Anti-Lockout & Desktop Companion (Inspirado no *Coucou*)  
+> **Pilar Central:** Blindagem Anti-Lockout & Sentinela Desktop NOC  
 > **Licença:** MIT / Open Source para a comunidade de Provedores de Internet
 
 ---
 
 ## 🧭 Manifesto de Arquitetura
 
-O mascote na sua área de trabalho funciona como um **HUD / Desktop Companion vivo**:
+O HarnessISP na área de trabalho atua como um **HUD Sentinela de alta disponibilidade para engenharia de NOC**:
 
-* **Anatomia Coucou Mochi & Presença Viva:** Inspirado fielmente no companion de código [Louis-CFM/coucou](https://github.com/Louis-CFM/coucou):
-  * **Superelipse Aveludada (Squircle Mochi):** Corpo superelíptico clássico (fórmula da superelipse com expoente 2.0/2.7) com acabamento pérola acetinado, bochechas coradas translúcidas e iluminação sutil de estado (tint esmeralda/ciano em repouso, azul elétrico em processamento e vermelho carmesim em alerta).
-  * **Cursor Gaze Tracking em Tempo Real:** Olhos no formato pílula com catchlight de brilho que acompanham o ponteiro do mouse na tela através de mapeamento suave com tangente hiperbólica (`tanh`), piscando naturalmente a cada 3 a 5 segundos.
-  * **Interação Tátil (Poke & Dizzy):** Ao clicar, ele reage com amortecimento elástico e bochechas coradas. Se o operador cutucá-lo rapidamente (3 cliques consecutivos), ele fica temporariamente tonto (**Dizzy**) com olhos em espirais giratórias e balanço de cabeça!
-  * **Context Dropping & Mailbox Morph:** Ao arrastar scripts `.rsc`, logs de BGP ou dumps de OLT sobre o mascote, ele abre uma abertura de correio animada no topo da cabeça, engole o arquivo e mastiga feliz (`happy ^ ^`), disparando a análise pré-flight.
-  * **Happy Celebration Jump:** Ao concluir tarefas operacionais, diagnósticos ou restabelecer enlaces, executa um salto elástico de celebração com olhinhos sorridentes (`happy ^ ^`).
-  * **Dynamic Island (Pill Mode):** Duplo clique alterna suavemente entre o mascote squircle e a pílula horizontal dark-glass com telemetria live do NOC (BGP, latência, potência óptica FTTH) e mini-avatar Mochi.
-* **Ao ser clicado:** Abre imediatamente o seu terminal padrão do sistema (**Kitty, Ghostty, Foot, Alacritty, Windows Terminal**) executando a sessão da **Google Antigravity CLI (`agy`)**:
-  ```bash
-  agy
-  ```
+* **HUD Sentinela NOC & Telemetria em Tempo Real:**
+  * **Badge Sentinela Compacto:** Emblema circular dark-glass com topologia de rede centralizada e anel de pulso em tempo real. Identificação visual imediata de estado (Verde Esmeralda = Operação Normal, Ciano = Processamento/Sync, Carmesim = Alerta Crítico / Safe-Mode).
+  * **Dynamic Island (NOC Telemetry Mode):** Alternância via duplo-clique para barra horizontal dark-glass com telemetria live do NOC: sessões BGP ativas, latência média (ms), níveis de potência óptica FTTH (dBm) e status do Safe-Mode.
+  * **Context Dropping & Ingestão Direta:** Arraste scripts RouterOS (`.rsc`), backups, dumps de OLT ou arquivos de log diretamente sobre o widget para disparar automaticamente a auditoria pré-flight de segurança anti-lockout.
+  * **Disparo de Terminal Nativo com 1 Clique:** Clique no widget para abrir instantaneamente o terminal padrão configurado no sistema (**Ghostty, Kitty, Foot, Alacritty, Windows Terminal**) executando a sessão da **Google Antigravity CLI (`agy`)**:
+    ```bash
+    agy
+    ```
 
 ---
 
@@ -29,10 +26,10 @@ O mascote na sua área de trabalho funciona como um **HUD / Desktop Companion vi
 
 ```mermaid
 flowchart LR
-    subgraph Workstation["Workstation / Desktop do Operador"]
-        Companion["Mascote PySide6 (HUD Vivo)"]
-        DropZone["Context Drop (.rsc / .csv)"] --> Companion
-        Companion -->|Clique| Terminal["Terminal Padrão do Sistema"]
+    subgraph Workstation["Workstation / Desktop do Operador NOC"]
+        Sentinela["Sentinela PySide6 (NOC HUD)"]
+        DropZone["Context Drop (.rsc / .csv / .log)"] --> Sentinela
+        Sentinela -->|Clique| Terminal["Terminal Padrão do Sistema"]
     end
 
     subgraph CoreEngine["HarnessISP Core / Servidor NOC"]
@@ -58,7 +55,7 @@ flowchart LR
 
 | Camada | Ambiente | Responsabilidade Operacional |
 | :--- | :--- | :--- |
-| **Desktop Companion (PySide6)** | Workstation do Operador (Linux / macOS / Windows) | HUD visual tátil, animação facial, Dynamic Island, aprovação pré-flight e context drop. |
+| **Desktop Sentinela (PySide6)** | Workstation do Operador (Linux / macOS / Windows) | HUD visual de NOC, Dynamic Island, aprovação pré-flight HITL e context drop de scripts. |
 | **Workspace & Esteira Central** | Servidor NOC / Estação de Engenharia | Repositório canônico, suíte de testes, base RAG SQLite FTS5, scripts de rollback e cofre AES-256. |
 | **Motor de Cognição (Terminal)** | Google Cloud (**Gemini 3.8 Flash / Pro**) via `agy` | Sessão interativa da Google Antigravity CLI no terminal nativo, com skills de ISP e governança via `AGENTS.md`. |
 
@@ -70,7 +67,7 @@ flowchart LR
    * Detecção preventiva de perda de gerência: regras de `drop` na chain `input` sem `established,related`, alteração de MTU ou corte de rotas padrão.
    * Geração automática de scripts com Safe Mode (`<safe>`) no RouterOS e timers de rollback automático no Linux.
 2. **Pílula de Pré-flight Approval (HITL com 1 Clique):**
-   * Diálogo flutuante acoplado ao companion que intercepta comandos perigosos com botões rápidos: `[🛡️ Safe-Mode (Enter)]`, `[⚡ Forçar]` ou `[❌ Abortar (Esc)]`.
+   * Diálogo flutuante acoplado ao sentinela que intercepta comandos perigosos com botões rápidos: `[🛡️ Safe-Mode (Enter)]`, `[⚡ Forçar]` ou `[❌ Abortar (Esc)]`.
 3. **Automação FTTH Multivendor (`core/ftth_engine.py`):**
    * Parsing de `display ont autofind` e cálculo de atenuação óptica (Class B+/C+) para OLTs Huawei, ZTE, Fiberhome e Datacom.
 4. **Token Economy Nativa (RTK):**
@@ -84,11 +81,13 @@ flowchart LR
 
 ```text
 harness-isp/
-├── main.py                     # Entrypoint do Desktop Companion e disparo do terminal nativo
+├── main.py                     # Entrypoint do Desktop Sentinela e disparo do terminal nativo
 ├── AGENTS.md                   # Contrato de governança, comandos determinísticos e zero leaks
 ├── requirements.txt            # Dependências pinadas (PySide6, pydantic, cryptography, jc, pytest)
 ├── README.md                   # Manifesto e documentação do projeto
 ├── prompt-harness-isp-v3.md    # Especificação master de telecom
+├── desktop/                    # Arquivos de atalho XDG (.desktop)
+├── systemd/                    # Unit files systemd de usuário
 ├── core/
 │   ├── storage.py              # Gestão do workspace (~/HarnessISP_Data) e backups prévios
 │   ├── vault.py                # Cofre AES-256-GCM (Zero Leaks)
@@ -98,24 +97,24 @@ harness-isp/
 │   ├── failsafe_guard.py       # Validador Anti-Lockout e gerador de Safe Mode
 │   ├── ftth_engine.py          # Diagnósticos ópticos e provisionamento OLT
 │   ├── net_tools.py            # Utilitários de rede (Ping, MTR, DNS, RDAP)
-│   ├── session.py              # Máquina de estados do companion
+│   ├── session.py              # Máquina de estados do sentinela
 │   └── cli_bridge.py           # Ponte oficial com a Google Antigravity CLI (agy)
 ├── gui/
 │   ├── styles.py               # QSS Dark Mode e design system NOC
-│   ├── widget.py               # Desktop Companion: Mascote com olhos expressivos, Context Drop e Dynamic Island
+│   ├── widget.py               # Desktop Sentinela: Badge NOC, Context Drop e Dynamic Island
 │   ├── approval_pill.py        # Pílula flutuante de autorização rápida pré-flight
 │   └── tray.py                 # Ícone na bandeja do sistema
 ├── wiki/                       # Base de conhecimento SSOT em Markdown (Obsidian)
-└── tests/                      # Suíte de testes automatizados com pytest (23 testes automatizados)
+└── tests/                      # Suíte de testes automatizados com pytest
 ```
 
 ---
 
 ## 🚀 Como Executar
 
-### 1. Iniciar o Companion no Desktop (Workstation / Omarchy / Alienware)
+### 1. Iniciar o Sentinela no Desktop (Workstation / Omarchy / Alienware)
 
-O mascote é um **HUD gráfico** que roda localmente na sua estação de trabalho (com display Wayland/X11). Ao ser clicado, ele abre automaticamente o seu terminal conectando via SSH ao CT 249 (`harness-isp`) executando a `agy`.
+O widget é um **HUD gráfico** que roda localmente na sua estação de trabalho (com display Wayland/X11). Ao ser clicado, ele abre automaticamente o seu terminal conectando via SSH ao CT 249 (`harness-isp`) executando a `agy`.
 
 ```bash
 # Na sua máquina física com tela:
@@ -127,7 +126,7 @@ cd ~/harness-isp
 # Ou execução direta via uv:
 uv run python3 main.py
 ```
-> *Ao clicar no mascote, seu terminal padrão (`ghostty`, `kitty`, `foot`, etc.) abrirá instantaneamente na sessão interativa da `agy` no servidor de telecom.*
+> *Ao clicar no widget, seu terminal padrão (`ghostty`, `kitty`, `foot`, etc.) abrirá instantaneamente na sessão interativa da `agy` no servidor de telecom.*
 
 #### Inicialização Automática no Login (Opcional):
 ```bash
@@ -150,9 +149,9 @@ pytest -v
 
 ---
 
-## 🧪 Cobertura de Testes Automatizados (20/20)
+## 🧪 Cobertura de Testes Automatizados
 
-* **Coucou-Style Companion:** Instanciação, física elástica, alternância Dynamic Island e renderização facial.
+* **Desktop Sentinela HUD:** Instanciação, anel de status, alternância Dynamic Island e context dropping de scripts RouterOS.
 * **Pre-flight Approval Pill:** Interceptação flutuante, atalhos de teclado e decisões Safe-Mode/Abort.
 * **Anti-Lockout Shield:** Detecção de regras suicidas de firewall, MTU e bloqueio de SSH.
 * **Cofre Seguro:** Criptografia AES-256-GCM com isolamento contra vazamento de credenciais.

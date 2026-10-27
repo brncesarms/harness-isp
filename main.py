@@ -1,6 +1,6 @@
-"""Main entrypoint for HarnessISP Desktop Companion (Coucou Architecture).
+"""Main entrypoint for HarnessISP Desktop Sentinela (NOC HUD).
 
-Acts as a living desktop companion and pre-flight HUD on the workstation,
+Acts as a living desktop sentry and pre-flight HUD on the workstation,
 launching the user's native terminal running the official Google Antigravity CLI (agy).
 """
 
@@ -32,10 +32,10 @@ except ImportError:
 
 def check_display_environment() -> None:
     """Check if graphical display server is available before loading Qt."""
-    print("\n⚡ HarnessISP Desktop Companion (Coucou Architecture)")
+    print("\n⚡ HarnessISP Desktop Sentinela (NOC HUD)")
     print("━" * 60)
     print("⚠️  Nenhum servidor gráfico detectado (ambiente headless / SSH).")
-    print("ℹ️  O Mascote Coucou foi concebido para rodar no seu Desktop físico (Omarchy / Hyprland).")
+    print("ℹ️  O HUD Sentinela foi concebido para rodar no seu Desktop físico (Omarchy / Hyprland).")
     print("\n👉 Para interagir com o agente neste terminal:")
     print("   python3 cli.py chat")
     print("   ou")
@@ -133,9 +133,9 @@ class HarnessISPApp(QObject):
         launch_native_terminal(self.project_dir)
         QTimer.singleShot(1500, lambda: self.ball.set_ball_state(BallState.IDLE_OK))
 
-    # --- Coucou-inspired Context Dropping ---
+    # --- Context Dropping (NOC Script & Log Ingestion) ---
     def handle_file_drop(self, file_path_str: str) -> None:
-        """Analyze network files (.rsc, .log, .csv) dropped onto the companion."""
+        """Analyze network files (.rsc, .log, .csv) dropped onto the sentinela."""
         path = Path(file_path_str)
         if not path.exists():
             return

@@ -1,5 +1,5 @@
 [Unit]
-Description=HarnessISP Desktop Companion (Coucou HUD)
+Description=HarnessISP Desktop Sentinela (NOC HUD)
 Documentation=https://github.com/brncesarms/harness-isp
 After=graphical-session.target
 PartOf=graphical-session.target

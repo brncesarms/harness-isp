@@ -1,11 +1,11 @@
 [Desktop Entry]
 Type=Application
-Name=HarnessISP Companion
-GenericName=Desktop Companion para Redes e NOC
-Comment=HUD e Desktop Companion inteligente com Anti-Lockout para Provedores de Internet
+Name=HarnessISP Sentinela
+GenericName=HUD Sentinela para Redes e NOC
+Comment=HUD Sentinela de alta disponibilidade com Anti-Lockout para Provedores de Internet
 Exec=bash -c "cd $HOME/harness-isp && (test -d .venv || uv venv) && uv run python3 main.py"
 Icon=network-transmit-receive
 Terminal=false
 Categories=Network;Development;Utility;
 StartupNotify=true
-Keywords=harness;isp;telecom;agy;antigravity;companion;
+Keywords=harness;isp;telecom;agy;antigravity;noc;sentinela;

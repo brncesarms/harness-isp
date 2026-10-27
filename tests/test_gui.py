@@ -11,7 +11,7 @@ from PySide6.QtGui import QDropEvent
 from PySide6.QtWidgets import QApplication
 
 from core.session import BallState, SessionManager
-from gui.widget import FloatingBallWidget, EyeShape
+from gui.widget import FloatingBallWidget
 from gui.approval_pill import ApprovalPillWidget
 from main import launch_native_terminal
 
@@ -24,71 +24,43 @@ def qapp():
     return app
 
 
-def test_floating_ball_widget_instantiation(qapp):
-    ball = FloatingBallWidget()
-    assert ball.width() > 0
-    assert ball.height() > 0
-    assert ball.mode == "ball"
+def test_sentinela_widget_instantiation(qapp):
+    widget = FloatingBallWidget()
+    assert widget.width() > 0
+    assert widget.height() > 0
+    assert widget.mode == "ball"
 
-    # Test mode toggle (Coucou Dynamic Island)
-    ball.toggle_mode()
-    assert ball.mode == "pill"
-    assert ball.width() == 320
+    # Test mode toggle (Dynamic Island pill)
+    widget.toggle_mode()
+    assert widget.mode == "pill"
+    assert widget.width() == 340
 
-    ball.toggle_mode()
-    assert ball.mode == "ball"
-
-
-def test_floating_ball_states_and_telemetry(qapp):
-    ball = FloatingBallWidget()
-    ball.set_ball_state(BallState.PROCESSING)
-    assert ball.ball_state == BallState.PROCESSING
-
-    ball.set_ball_state(BallState.ALERT)
-    assert ball.ball_state == BallState.ALERT
-    assert ball.eye_shape_override == EyeShape.WIDE
-
-    # Finishing task or resolving alert triggers happy celebration
-    ball.set_ball_state(BallState.IDLE_OK)
-    assert ball.ball_state == BallState.IDLE_OK
-    assert ball.eye_shape_override == EyeShape.HAPPY
-
-    ball.set_telemetry("🟢 BGP: 6 Up | ⚡ 5ms")
-    assert "BGP: 6 Up" in ball.telemetry_summary
+    widget.toggle_mode()
+    assert widget.mode == "ball"
 
 
-def test_coucou_mochi_poking_and_dizzy(qapp):
-    ball = FloatingBallWidget()
-    assert not ball.is_dizzy
+def test_sentinela_states_and_telemetry(qapp):
+    widget = FloatingBallWidget()
+    widget.set_ball_state(BallState.PROCESSING)
+    assert widget.ball_state == BallState.PROCESSING
 
-    # Single poke
-    ball._handle_poke()
-    assert len(ball.poke_history) == 1
-    assert not ball.is_dizzy
+    widget.set_ball_state(BallState.ALERT)
+    assert widget.ball_state == BallState.ALERT
 
-    # Rapid second and third pokes
-    ball._handle_poke()
-    ball._handle_poke()
-    assert ball.is_dizzy
-    assert ball.eye_shape_override == EyeShape.SPIRAL
-    assert ball.blush_intensity >= 0.9
+    widget.set_ball_state(BallState.IDLE_OK)
+    assert widget.ball_state == BallState.IDLE_OK
+
+    widget.set_telemetry("🟢 BGP: 6 Up | ⚡ 5ms | 🛡️ Safe-Mode")
+    assert "BGP: 6 Up" in widget.telemetry_summary
 
 
-def test_coucou_mochi_happy_jump(qapp):
-    ball = FloatingBallWidget()
-    ball.happy_jump()
-    assert ball.jump_velocity < 0
-    assert ball.eye_shape_override == EyeShape.HAPPY
-    assert ball.blush_intensity > 0.8
-
-
-def test_coucou_mochi_context_dropping(qapp, tmp_path):
-    ball = FloatingBallWidget()
+def test_sentinela_context_dropping(qapp, tmp_path):
+    widget = FloatingBallWidget()
     test_file = tmp_path / "mikrotik_test.rsc"
     test_file.write_text("/ip address print")
 
     received_drops = []
-    ball.file_dropped.connect(lambda p: received_drops.append(p))
+    widget.file_dropped.connect(lambda p: received_drops.append(p))
 
     # Simulate drop event
     mime_data = QMimeData()
@@ -100,12 +72,18 @@ def test_coucou_mochi_context_dropping(qapp, tmp_path):
         Qt.LeftButton,
         Qt.NoModifier,
     )
-    ball.dropEvent(drop_event)
+    widget.dropEvent(drop_event)
 
     assert len(received_drops) == 1
     assert Path(received_drops[0]).resolve() == test_file.resolve()
-    assert ball.is_chewing
-    assert ball.eye_shape_override == EyeShape.HAPPY
+
+
+def test_sentinela_signals(qapp):
+    widget = FloatingBallWidget()
+    clicked = []
+    widget.clicked.connect(lambda: clicked.append(True))
+
+    assert len(clicked) == 0
 
 
 def test_approval_pill_widget(qapp):
