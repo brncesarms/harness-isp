@@ -7,13 +7,49 @@ information before passing to the LLM, reducing token consumption and noise.
 from __future__ import annotations
 
 import re
+import shutil
+import subprocess
 from typing import Any
 
 import jc
 
 
 class TokenOptimizer:
-    """Compresses verbose network CLI diagnostic outputs."""
+    """Compresses verbose network CLI diagnostic outputs using domain parsers and native RTK."""
+
+    @staticmethod
+    def has_native_rtk() -> bool:
+        """Check if native Rust Token Killer (rtk) binary is present."""
+        return shutil.which("rtk") is not None
+
+    @staticmethod
+    def run_rtk_command(cmd: list[str]) -> str:
+        """Execute command wrapped with native RTK for ultra-compact output."""
+        if not TokenOptimizer.has_native_rtk():
+            res = subprocess.run(cmd, capture_output=True, text=True, check=False)
+            return res.stdout or res.stderr
+
+        rtk_cmd = ["rtk", "run", "--"] + cmd
+        res = subprocess.run(rtk_cmd, capture_output=True, text=True, check=False)
+        return res.stdout or res.stderr
+
+    @staticmethod
+    def filter_with_rtk_pipe(raw_text: str, filter_name: str = "log") -> str:
+        """Filter text using native RTK pipe mode if available."""
+        if not TokenOptimizer.has_native_rtk():
+            return TokenOptimizer.optimize_text(raw_text)
+
+        try:
+            res = subprocess.run(
+                ["rtk", "pipe", "-f", filter_name],
+                input=raw_text,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            return res.stdout if res.returncode == 0 and res.stdout.strip() else raw_text
+        except Exception:
+            return TokenOptimizer.optimize_text(raw_text)
 
     @staticmethod
     def compress_ping(raw_output: str) -> dict[str, Any]:

@@ -39,3 +39,9 @@ def test_optimize_text():
     compressed = TokenOptimizer.optimize_text(long_text, max_lines=20)
 
     assert "[80 lines compressed by RTK]" in compressed
+
+
+def test_native_rtk_integration():
+    assert TokenOptimizer.has_native_rtk() is True
+    out = TokenOptimizer.run_rtk_command(["echo", "hello rtk"])
+    assert "hello rtk" in out
