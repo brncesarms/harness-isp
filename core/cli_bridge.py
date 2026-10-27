@@ -1,8 +1,7 @@
 """Google Antigravity CLI Bridge for HarnessISP.
 
 Connects strictly to the official Google Antigravity CLI (agy) and Google Cloud
-Gemini models (Gemini 3.8 Flash / Pro) with situational awareness and AGENTS.md
-governance. Local model fallback (Ollama) is intentionally disabled.
+Gemini models (Gemini 3.8 Flash / Pro) with AGENTS.md governance.
 """
 
 from __future__ import annotations
@@ -18,7 +17,7 @@ from core.failsafe_guard import FailsafeGuard
 
 
 def get_situational_context() -> str:
-    """Reads AGENTS.md and gathers runtime host telemetry."""
+    """Reads AGENTS.md and gathers runtime host telemetry in an agnostic way."""
     current_host = socket.gethostname()
     repo_root = Path(__file__).resolve().parent.parent
     agents_md_path = repo_root / "AGENTS.md"
@@ -31,21 +30,18 @@ def get_situational_context() -> str:
             pass
 
     telemetry = (
-        f"• Host de Execução Atual: {current_host}\n"
-        f"• Host SSOT / Esteira Central: CT 249 (harness-isp, Debian 13 Trixie no Proxmox VE)\n"
-        f"• Gateway / Roteador Borda: MikroTik RouterOS (10.0.0.1)\n"
-        f"• Autoridade Soberana: Bruno Cesar\n"
-        f"• Repositório Git SSOT: https://github.com/brncesarms/harness-isp\n"
-        f"• Diretório Local: {repo_root}"
+        f"• Host de Execução: {current_host}\n"
+        f"• Motor de Cognição: Google Antigravity CLI (agy) com Google Gemini\n"
+        f"• Diretório do Projeto: {repo_root}"
     )
 
     return (
         f"=== CONTRATO DE GOVERNANÇA (AGENTS.md) ===\n"
         f"{agents_content}\n"
         f"===========================================\n\n"
-        f"=== TELEMETRIA DE AMBIENTE ATUAL ===\n"
+        f"=== TELEMETRIA DE AMBIENTE ===\n"
         f"{telemetry}\n"
-        f"====================================\n"
+        f"==============================\n"
     )
 
 
@@ -86,10 +82,9 @@ class AntigravityCLIBridge:
         env = dict(os.environ)
         env["PATH"] = f"{os.path.expanduser('~/.local/bin')}:{env.get('PATH', '')}"
 
-        # Feed situational context if available
         full_prompt = prompt
         if context:
-            full_prompt = f"[Contexto RAG de Topologia/Notas]:\n{context}\n\nPergunta:\n{prompt}"
+            full_prompt = f"[Contexto de Topologia/Notas]:\n{context}\n\nPergunta:\n{prompt}"
 
         cmd = [bin_path, "-p", full_prompt]
 
@@ -114,28 +109,26 @@ class AntigravityCLIBridge:
         """Main entrypoint. Invokes Google Antigravity CLI or deterministic rule engine."""
         p_lower = prompt.lower().strip()
 
-        # 1. Location & Identity Check
+        # 1. Location & Identity Check (Universal & Agnostic)
         location_triggers = ("onde você está", "onde vc esta", "onde você roda", "onde vc roda", "onde voce esta", "onde esta", "onde está", "qual seu host", "qual o seu host")
         identity_triggers = ("quem é você", "quem é vc", "quem e voce", "quem e vc", "o que voce faz", "o que você faz", "ajuda", "help", "agents.md")
 
         if any(trig in p_lower for trig in location_triggers):
             current_host = socket.gethostname()
             return (
-                f"📍 **Consciência Situacional & Localização do HarnessISP:**\n\n"
-                f"• **Host de Execução Local:** `{current_host}` (Desktop Companion via PySide6)\n"
-                f"• **Esteira Master & SSOT:** `CT 249` (`harness-isp`, Debian 13 Trixie no Proxmox VE)\n"
+                f"📍 **Consciência Situacional do HarnessISP:**\n\n"
+                f"• **Host Local:** `{current_host}` (Desktop Companion via PySide6)\n"
                 f"• **Motor de IA Oficial:** Google Antigravity CLI (`agy`) com modelos **Google Gemini** (Nuvem)\n"
-                f"• **Contrato de Governança:** Apontado para o **`AGENTS.md`** canônico\n"
-                f"• **Roteador / Gateway Borda:** MikroTik RouterOS (`10.0.0.1`)\n"
-                f"• **Autoridade Soberana:** Bruno Cesar\n\n"
-                f"> Conectado estritamente à infraestrutura do Google Gemini via `agy`, com zero uso de modelos locais."
+                f"• **Contrato de Governança:** Apontado para o **`AGENTS.md`** canônico do repositório\n"
+                f"• **Ambiente:** Engenharia de Redes & NOC para ISPs\n\n"
+                f"> Operando sob as diretrizes de blindagem anti-lockout, cofre seguro e cognição em nuvem Google Gemini."
             )
 
         if any(trig in p_lower for trig in identity_triggers):
             current_host = socket.gethostname()
             return (
                 f"Olá! Eu sou o **HarnessISP**, assistente companion oficial operando com a **Google Antigravity CLI (`agy`)** "
-                f"sob as regras do **`AGENTS.md`** no host `{current_host}` (SSOT no **CT 249**).\n\n"
+                f"sob as regras do **`AGENTS.md`** no host `{current_host}`.\n\n"
                 f"🛡️ **Pilares de Atuação:**\n"
                 f"• **Google Gemini Engine:** Cognição avançada em nuvem para engenharia de telecomunicações.\n"
                 f"• **Blindagem Anti-Lockout:** Safe Mode inegociável em roteadores MikroTik e servidores Linux.\n"

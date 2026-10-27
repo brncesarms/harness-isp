@@ -1,15 +1,15 @@
 # ⚡ HarnessISP — Desktop Companion Inteligente para Redes e Provedores (ISPs)
 
-> **Arquitetura Soberana:** Desktop Companion (Alienware / Workstation) ⇄ Esteira Central CT 249 (Proxmox VE) ⇄ Google Antigravity CLI (`agy`)  
+> **Arquitetura Soberana:** Desktop Companion (Workstation do Operador) ⇄ Motor de Redes NOC ⇄ Google Antigravity CLI (`agy`)  
 > **Especialidade:** Engenharia de Redes, FTTH/GPON & NOC Operacional  
 > **Pilar Central:** Blindagem Anti-Lockout & Desktop Companion (Inspirado no *Coucou*)  
-> **Autoridade:** Bruno Cesar | **Repositório SSOT:** `brncesarms/harness-isp`
+> **Licença:** MIT / Open Source para a comunidade de Provedores de Internet
 
 ---
 
 ## 🧭 Manifesto de Arquitetura
 
-O mascote na sua área de trabalho (**Alienware**) funciona como um **HUD / Desktop Companion vivo**:
+O mascote na sua área de trabalho funciona como um **HUD / Desktop Companion vivo**:
 
 * **Presença Não-Intrusiva:** Fica flutuando livremente na área de trabalho ou ancorado no topo em formato de **Dynamic Island**.
 * **Feedback Visual em Tempo Real:** Expressa visualmente o estado da infraestrutura através de animações táteis e halos dinâmicos:
@@ -17,9 +17,9 @@ O mascote na sua área de trabalho (**Alienware**) funciona como um **HUD / Desk
   * 🟡 **Escaneando:** Olhos em varredura de scanner (MTR, Ping, OLT Autofind).
   * 🔴 **Alerta Crítico:** Olhos arregalados e pulsação rápida ao detectar risco de lockout ou atenuação severa de fibra (< -27 dBm).
 * **Context Dropping:** Serve como zona de arrastar e soltar direta para scripts `.rsc` do MikroTik, dumps de OLT e logs de BGP para auditoria pré-flight instantânea.
-* **Ao ser clicado:** Abre imediatamente o seu terminal padrão (**Kitty**) conectado via SSH diretamente na esteira oficial do **CT 249**:
+* **Ao ser clicado:** Abre imediatamente o seu terminal padrão do sistema (**Kitty, Ghostty, Foot, Alacritty, Windows Terminal**) executando a sessão da **Google Antigravity CLI (`agy`)**:
   ```bash
-  ssh -t harness-isp "cd /home/brn/harness-isp && export PATH=$HOME/.local/bin:$PATH && agy"
+  agy
   ```
 
 ---
@@ -28,13 +28,13 @@ O mascote na sua área de trabalho (**Alienware**) funciona como um **HUD / Desk
 
 ```mermaid
 flowchart LR
-    subgraph Workstation["Alienware / Omarchy Linux (Hyprland)"]
+    subgraph Workstation["Workstation / Desktop do Operador"]
         Companion["Mascote PySide6 (HUD Vivo)"]
         DropZone["Context Drop (.rsc / .csv)"] --> Companion
-        Companion -->|Clique| Terminal["Terminal Padrão (Kitty)"]
+        Companion -->|Clique| Terminal["Terminal Padrão do Sistema"]
     end
 
-    subgraph CT249["CT 249 / Debian 13 (Proxmox VE - 10.10.10.6)"]
+    subgraph CoreEngine["HarnessISP Core / Servidor NOC"]
         AGY["Google Antigravity CLI (agy)"]
         Guard["failsafe_guard.py (Anti-Lockout)"]
         FTTH["ftth_engine.py (GPON Multivendor)"]
@@ -47,7 +47,7 @@ flowchart LR
         Gemini["Modelos Gemini 3.8 Flash / Pro"]
     end
 
-    Terminal -->|SSH Transparente| AGY
+    Terminal --> AGY
     AGY <--> Gemini
     AGY --> Guard
     AGY --> FTTH
@@ -55,10 +55,10 @@ flowchart LR
     AGY --> Vault
 ```
 
-| Camada | Host Físico / VM | Responsabilidade Operacional |
+| Camada | Ambiente | Responsabilidade Operacional |
 | :--- | :--- | :--- |
-| **Desktop Companion (PySide6)** | `alienware` (Omarchy Linux / Hyprland) | HUD visual tátil, animação facial, Dynamic Island, aprovação pré-flight e context drop. |
-| **Workspace & Esteira Central (SSOT)** | **CT 249** (`harness-isp` Debian 13 no Proxmox) | Repositório canônico, suíte de testes, base RAG SQLite FTS5, scripts de rollback e cofre AES-256. |
+| **Desktop Companion (PySide6)** | Workstation do Operador (Linux / macOS / Windows) | HUD visual tátil, animação facial, Dynamic Island, aprovação pré-flight e context drop. |
+| **Workspace & Esteira Central** | Servidor NOC / Estação de Engenharia | Repositório canônico, suíte de testes, base RAG SQLite FTS5, scripts de rollback e cofre AES-256. |
 | **Motor de Cognição (Terminal)** | Google Cloud (**Gemini 3.8 Flash / Pro**) via `agy` | Sessão interativa da Google Antigravity CLI no terminal nativo, com skills de ISP e governança via `AGENTS.md`. |
 
 ---
@@ -83,7 +83,7 @@ flowchart LR
 
 ```text
 harness-isp/
-├── main.py                     # Entrypoint do Desktop Companion e disparo do terminal CT 249
+├── main.py                     # Entrypoint do Desktop Companion e disparo do terminal nativo
 ├── AGENTS.md                   # Contrato de governança, comandos determinísticos e zero leaks
 ├── requirements.txt            # Dependências pinadas (PySide6, pydantic, cryptography, jc, pytest)
 ├── README.md                   # Manifesto e documentação do projeto
@@ -112,25 +112,33 @@ harness-isp/
 
 ## 🚀 Como Executar
 
-### 1. Iniciar o Companion no Desktop (Workstation / Alienware)
+### 1. Iniciar o Companion no Desktop
 
 ```bash
-# Executa o launcher nativo
-harness-isp
+# Clone o repositório
+git clone https://github.com/brncesarms/harness-isp.git
+cd harness-isp
+
+# Crie e ative o ambiente virtual
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+# Inicie o companion
+python3 main.py
 ```
-> *Ao clicar no mascote, o Kitty abre instantaneamente na esteira do CT 249 rodando a `agy`.*
+> *Ao clicar no mascote, seu terminal padrão abrirá instantaneamente na sessão interativa da `agy` com modelos Gemini.*
 
-### 2. Acesso Direto via Terminal
+### 2. Acesso Direto via CLI
 
 ```bash
-# Conexão transparente com a esteira do CT 249
-ssh -t harness-isp "cd /home/brn/harness-isp && agy"
+# Iniciar a sessão interativa no terminal atual
+python3 cli.py chat
 ```
 
 ### 3. Rodar a Suíte de Testes
 
 ```bash
-# Executado dentro do repositório
 source .venv/bin/activate
 pytest -v
 ```
