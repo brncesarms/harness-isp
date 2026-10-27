@@ -2,24 +2,30 @@
 
 from __future__ import annotations
 
-import asyncio
-from typing import Callable
-
+import re
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QLineEdit,
     QPushButton,
-    QScrollArea,
     QTextEdit,
     QVBoxLayout,
     QWidget,
 )
 
-from core.failsafe_guard import FailsafeGuard
 from core.session import SessionManager
 from gui.styles import NOC_STYLESHEET
+
+
+def _format_markdown_to_html(text: str) -> str:
+    # Inline code
+    text = re.sub(r"`([^`]+)`", r"<code style='background-color:#1e293b;color:#f8fafc;padding:2px 4px;border-radius:3px;font-family:monospace;'>\1</code>", text)
+    # Bold
+    text = re.sub(r"\*\*([^\*]+)\*\*", r"<b>\1</b>", text)
+    # Line breaks
+    text = text.replace(chr(10), "<br>")
+    return text
 
 
 class ChatPanel(QWidget):
@@ -32,7 +38,7 @@ class ChatPanel(QWidget):
         self.session = session
         self.setStyleSheet(NOC_STYLESHEET)
         self.setWindowTitle("HarnessISP - Painel NOC")
-        self.resize(480, 600)
+        self.resize(500, 620)
         self.setWindowFlags(Qt.Window | Qt.WindowStaysOnTopHint)
 
         self._init_ui()
@@ -80,7 +86,7 @@ class ChatPanel(QWidget):
         # Input Area
         input_layout = QHBoxLayout()
         self.input_field = QLineEdit()
-        self.input_field.setPlaceholderText("Pergunte à IA, cole saídas de CLI ou comandos de roteador...")
+        self.input_field.setPlaceholderText("Pergunte ao assistente, cole saídas de CLI ou comandos...")
         self.input_field.returnPressed.connect(self._handle_send)
 
         send_btn = QPushButton("Enviar")
@@ -100,14 +106,17 @@ class ChatPanel(QWidget):
         self.action_triggered.emit(text)
 
     def append_message(self, role: str, content: str, risk: str | None = None) -> None:
-        color = "#38bdf8" if role == "user" else "#a7f3d0"
+        color = "#38bdf8" if role == "user" else "#34d399"
         header = f"<b style='color:{color};'>[{role.upper()}]</b>"
         if risk == "CRITICAL":
             header += " <span style='background:#7f1d1d;color:#fca5a5;padding:2px 4px;border-radius:3px;'>⚠️ RISCO CRÍTICO DE LOCKOUT</span>"
 
-        # Format code blocks
-        formatted = content.replace("\n", "<br>").replace(" ", "&nbsp;")
+        formatted = _format_markdown_to_html(content)
         self.chat_display.append(f"{header}<br>{formatted}<br>")
+
+        # Auto-scroll to bottom
+        sb = self.chat_display.verticalScrollBar()
+        sb.setValue(sb.maximum())
 
     def refresh_display(self) -> None:
         self.chat_display.clear()

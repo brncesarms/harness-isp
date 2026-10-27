@@ -1,17 +1,17 @@
 """Main entrypoint for HarnessISP Desktop Application (Coucou-Inspired Edition).
 
 Integrates the expressive desktop companion, dynamic island pill, pre-flight
-approval dialogs, and instant network context dropping.
+approval dialogs, RAG memory and background LLM inference.
 """
 
 from __future__ import annotations
 
-import asyncio
 import os
 import sys
+import threading
 from pathlib import Path
 
-from PySide6.QtCore import QPoint, QTimer
+from PySide6.QtCore import QObject, QPoint, QTimer, Signal
 from PySide6.QtWidgets import QApplication
 
 from core.cli_bridge import AntigravityCLIBridge
@@ -29,10 +29,16 @@ from gui.tray import TrayManager
 from gui.widget import FloatingBallWidget
 
 
-class HarnessISPApp:
+class LLMWorkerSignals(QObject):
+    response_ready = Signal(str, str, object)  # role, content, risk_level
+
+
+class HarnessISPApp(QObject):
     """Orchestrates HarnessISP components with Coucou-inspired companion UX."""
 
     def __init__(self) -> None:
+        super().__init__()
+
         # 1. Core Services
         self.storage = StorageManager()
         self.storage.initialize()
@@ -41,6 +47,10 @@ class HarnessISPApp:
         self.memory = MemoryRAG(self.storage.memory_dir / "knowledge.db")
         self.session = SessionManager()
         self.cli_bridge = AntigravityCLIBridge()
+
+        # Thread signals for background LLM
+        self.worker_signals = LLMWorkerSignals()
+        self.worker_signals.response_ready.connect(self._on_llm_response)
 
         # 2. GUI Components
         self.ball = FloatingBallWidget()
@@ -152,7 +162,7 @@ class HarnessISPApp:
             return
 
         self.ball.set_ball_state(BallState.PROCESSING)
-        QTimer.singleShot(400, lambda: self._execute_and_respond(text, None))
+        self._dispatch_background_query(text, None)
 
     def handle_approval_decision(self, action: str, command: str) -> None:
         """Callback when user clicks Safe-Mode, Force, or Abort in Approval Pill."""
@@ -163,16 +173,32 @@ class HarnessISPApp:
             self.ball.set_ball_state(BallState.PROCESSING)
             safe_cmd = FailsafeGuard.wrap_in_safe_mode(command)
             self.chat.append_message("assistant", f"🛡️ <b>Executando com Safe-Mode RouterOS:</b><br><code>{safe_cmd}</code>")
-            QTimer.singleShot(400, lambda: self._execute_and_respond(safe_cmd, "LOW"))
+            self._dispatch_background_query(safe_cmd, "LOW")
         elif action == "force":
             self.ball.set_ball_state(BallState.PROCESSING)
             self.chat.append_message("assistant", f"⚡ <b>Forçando execução manual (Sem Safe-Mode):</b><br><code>{command}</code>")
-            QTimer.singleShot(400, lambda: self._execute_and_respond(command, "CRITICAL"))
+            self._dispatch_background_query(command, "CRITICAL")
 
-    def _execute_and_respond(self, text: str, risk_level: str | None) -> None:
-        response = self.cli_bridge._generate_local_isp_response(text)
+    def _dispatch_background_query(self, text: str, risk_level: str | None) -> None:
+        """Run LLM and RAG query in a background thread so UI stays fluid."""
+        def run():
+            try:
+                # Query RAG for knowledge context
+                rag_matches = self.memory.search(text, limit=2)
+                context = "
+".join([f"[{m.title}]: {m.snippet}" for m in rag_matches]) if rag_matches else None
+                response = self.cli_bridge.generate_response(text, context=context)
+            except Exception as e:
+                response = f"⚠️ Ocorreu uma falha no processamento: {e}. Executando sob modo determinístico de contingência."
+            self.worker_signals.response_ready.emit("assistant", response, risk_level)
+
+        thread = threading.Thread(target=run, daemon=True)
+        thread.start()
+
+    def _on_llm_response(self, role: str, response: str, risk_level: str | None) -> None:
+        """Slot called on main Qt thread when background query finishes."""
         self.session.add_assistant_message(response, risk_level=risk_level)
-        self.chat.append_message("assistant", response, risk=risk_level)
+        self.chat.append_message(role, response, risk=risk_level)
         self.ball.set_ball_state(BallState.IDLE_OK)
 
     def quit(self) -> None:
