@@ -185,8 +185,7 @@ class HarnessISPApp(QObject):
             try:
                 # Query RAG for knowledge context
                 rag_matches = self.memory.search(text, limit=2)
-                context = "
-".join([f"[{m.title}]: {m.snippet}" for m in rag_matches]) if rag_matches else None
+                context = chr(10).join([f"[{m.title}]: {m.snippet}" for m in rag_matches]) if rag_matches else None
                 response = self.cli_bridge.generate_response(text, context=context)
             except Exception as e:
                 response = f"⚠️ Ocorreu uma falha no processamento: {e}. Executando sob modo determinístico de contingência."
