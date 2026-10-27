@@ -1,58 +1,108 @@
-# ⚡ HarnessISP - Desktop Companion Inteligente para Redes e Provedores (ISPs)
+# ⚡ HarnessISP — Desktop Companion Inteligente para Redes e Provedores (ISPs)
 
-> **Arquitetura:** Híbrida (PySide6 + Antigravity CLI + Archimedes Zero-Leaks Engine)  
+> **Arquitetura Soberana:** Desktop Companion (Alienware / Workstation) ⇄ Esteira Central CT 249 (Proxmox VE) ⇄ Google Antigravity CLI (`agy`)  
 > **Especialidade:** Engenharia de Redes, FTTH/GPON & NOC Operacional  
-> **Pilar Central:** Blindagem Anti-Lockout & Desktop Companion (Inspirado no Coucou)
+> **Pilar Central:** Blindagem Anti-Lockout & Desktop Companion (Inspirado no *Coucou*)  
+> **Autoridade:** Bruno Cesar | **Repositório SSOT:** `brncesarms/harness-isp`
 
 ---
 
-## 1. Visão Geral
+## 🧭 Manifesto de Arquitetura
 
-O **HarnessISP** é um assistente de desktop flutuante projetado para analistas de NOC, técnicos de campo e engenheiros de redes de Provedores de Internet (ISPs).
+O mascote na sua área de trabalho (**Alienware**) funciona como um **HUD / Desktop Companion vivo**:
 
-Inspirado no design minimalista e tátil do projeto **Coucou**, ele combina:
-1. **Desktop Companion Expressivo (PySide6):**
-   - **Mascote Reativo NOC:** Olhos expressivos com piscada natural e halo dinâmico reagindo a estados da rede (Normal, Escaneando/Processando, Alerta de Lockout, Safe Mode).
-   - **Context Dropping:** Arraste e solte arquivos de rede (.rsc, .backup, .log, .csv, .txt) diretamente sobre o mascote para auditoria instantânea de firewall, detecção de lockout ou diagnóstico óptico de OLT.
-   - **Dynamic Island / Pill Mode:** Alternância com duplo-clique entre mascote esférico (80px) e pílula horizontal (320px) com telemetria viva (BGP Up, Ping, Atenuação dBm).
+* **Presença Não-Intrusiva:** Fica flutuando livremente na área de trabalho ou ancorado no topo em formato de **Dynamic Island**.
+* **Feedback Visual em Tempo Real:** Expressa visualmente o estado da infraestrutura através de animações táteis e halos dinâmicos:
+  * 🟢 **Vigilante / Normal:** Rede estável, latência baixa, respiração calma.
+  * 🟡 **Escaneando:** Olhos em varredura de scanner (MTR, Ping, OLT Autofind).
+  * 🔴 **Alerta Crítico:** Olhos arregalados e pulsação rápida ao detectar risco de lockout ou atenuação severa de fibra (< -27 dBm).
+* **Context Dropping:** Serve como zona de arrastar e soltar direta para scripts `.rsc` do MikroTik, dumps de OLT e logs de BGP para auditoria pré-flight instantânea.
+* **Ao ser clicado:** Abre imediatamente o seu terminal padrão (**Kitty**) conectado via SSH diretamente na esteira oficial do **CT 249**:
+  ```bash
+  ssh -t harness-isp "cd /home/brn/harness-isp && export PATH=$HOME/.local/bin:$PATH && agy"
+  ```
+
+---
+
+## 🏗️ Topologia e Divisão de Responsabilidades
+
+```mermaid
+flowchart LR
+    subgraph Workstation["Alienware / Omarchy Linux (Hyprland)"]
+        Companion["Mascote PySide6 (HUD Vivo)"]
+        DropZone["Context Drop (.rsc / .csv)"] --> Companion
+        Companion -->|Clique| Terminal["Terminal Padrão (Kitty)"]
+    end
+
+    subgraph CT249["CT 249 / Debian 13 (Proxmox VE - 10.10.10.6)"]
+        AGY["Google Antigravity CLI (agy)"]
+        Guard["failsafe_guard.py (Anti-Lockout)"]
+        FTTH["ftth_engine.py (GPON Multivendor)"]
+        Vault["vault.py (Zero Leaks AES-256)"]
+        RAG["memory_rag.py (SQLite FTS5 SSOT)"]
+        RTK["Token Optimizer (Rust rtk)"]
+    end
+
+    subgraph Cloud["Google Cloud AI"]
+        Gemini["Modelos Gemini 3.8 Flash / Pro"]
+    end
+
+    Terminal -->|SSH Transparente| AGY
+    AGY <--> Gemini
+    AGY --> Guard
+    AGY --> FTTH
+    AGY --> RAG
+    AGY --> Vault
+```
+
+| Camada | Host Físico / VM | Responsabilidade Operacional |
+| :--- | :--- | :--- |
+| **Desktop Companion (PySide6)** | `alienware` (Omarchy Linux / Hyprland) | HUD visual tátil, animação facial, Dynamic Island, aprovação pré-flight e context drop. |
+| **Workspace & Esteira Central (SSOT)** | **CT 249** (`harness-isp` Debian 13 no Proxmox) | Repositório canônico, suíte de testes, base RAG SQLite FTS5, scripts de rollback e cofre AES-256. |
+| **Motor de Cognição (Terminal)** | Google Cloud (**Gemini 3.8 Flash / Pro**) via `agy` | Sessão interativa da Google Antigravity CLI no terminal nativo, com skills de ISP e governança via `AGENTS.md`. |
+
+---
+
+## ⚡ Recursos Centrais para Provedores (NOC)
+
+1. **Blindagem Anti-Lockout Inegociável (`core/failsafe_guard.py`):**
+   * Detecção preventiva de perda de gerência: regras de `drop` na chain `input` sem `established,related`, alteração de MTU ou corte de rotas padrão.
+   * Geração automática de scripts com Safe Mode (`<safe>`) no RouterOS e timers de rollback automático no Linux.
 2. **Pílula de Pré-flight Approval (HITL com 1 Clique):**
-   - Diálogo flutuante acoplado ao companion que intercepta comandos de alto risco (ip route, interface disable, mtu, firewall drop).
-   - Autorização imediata via teclado ou clique: [Safe-Mode (Enter)] com rollback automático, [Forçar] ou [Abortar (Esc)].
-3. **Motor Antigravity CLI (agy):** Cognição avançada conectada a sessões persistentes e streaming contínuo.
-4. **Blindagem Anti-Lockout (core/failsafe_guard.py):** Proteção ativa contra perda de acesso a roteadores (MikroTik, Huawei, Cisco, Datacom) e servidores Linux.
-5. **Automação FTTH Multivendor (core/ftth_engine.py):** Diagnóstico de potência óptica dBm e provisionamento em OLTs Huawei, ZTE, Fiberhome e Datacom.
-6. **Herança do Archimedes:**
-   - **RTK Hook & Token Economy:** Compressão determinística de saídas extensas de rede.
-   - **Memória RAG Isolada:** SQLite FTS5 com busca atômica de topologia, POPs e lições pós-incidente.
-   - **Escudo Zero Leaks:** Cofre AES-256-GCM para credenciais de rede, injetadas estritamente em RAM.
+   * Diálogo flutuante acoplado ao companion que intercepta comandos perigosos com botões rápidos: `[🛡️ Safe-Mode (Enter)]`, `[⚡ Forçar]` ou `[❌ Abortar (Esc)]`.
+3. **Automação FTTH Multivendor (`core/ftth_engine.py`):**
+   * Parsing de `display ont autofind` e cálculo de atenuação óptica (Class B+/C+) para OLTs Huawei, ZTE, Fiberhome e Datacom.
+4. **Token Economy Nativa (RTK):**
+   * Compressão determinística de tabelas BGP extensas, rotas e logs de syslog antes da injeção no contexto do agente.
+5. **Escudo Zero Leaks (`core/vault.py`):**
+   * Cofre criptografado com AES-256-GCM e PBKDF2 para credenciais de borda, injetadas estritamente em RAM.
 
 ---
 
-## 2. Estrutura do Projeto
+## 📁 Estrutura do Repositório
 
 ```text
 harness-isp/
-├── main.py                     # Entrypoint e orquestração do Desktop Companion e Approval Pill
+├── main.py                     # Entrypoint do Desktop Companion e disparo do terminal CT 249
 ├── AGENTS.md                   # Contrato de governança, comandos determinísticos e zero leaks
 ├── requirements.txt            # Dependências pinadas (PySide6, pydantic, cryptography, jc, pytest)
-├── README.md                   # Documentação do projeto
-├── prompt-harness-isp-v3.md    # Especificação master (Anti-Lockout, OLTs Multivendor, RAG)
+├── README.md                   # Manifesto e documentação do projeto
+├── prompt-harness-isp-v3.md    # Especificação master de telecom
 ├── core/
 │   ├── storage.py              # Gestão do workspace (~/HarnessISP_Data) e backups prévios
 │   ├── vault.py                # Cofre AES-256-GCM (Zero Leaks)
 │   ├── token_optimizer.py      # Hook e compressor RTK nativo (Rust v1.1.0)
 │   ├── memory_rag.py           # Ingestor SQLite FTS5 sincronizado com Markdown
-│   ├── reflect.py              # Gerador de notas atômicas pós-incidente / post-mortem
-│   ├── failsafe_guard.py       # Validador Anti-Lockout, Safe Mode e Rollbacks
+│   ├── reflect.py              # Gerador de notas atômicas pós-incidente (NOTA-XXXX)
+│   ├── failsafe_guard.py       # Validador Anti-Lockout e gerador de Safe Mode
 │   ├── ftth_engine.py          # Diagnósticos ópticos e provisionamento OLT
-│   ├── net_tools.py            # Utilitários determinísticos (Ping, MTR, DNS, RDAP)
-│   ├── session.py              # Máquina de estados e histórico do chat
-│   └── cli_bridge.py           # Ponte assíncrona streaming com Antigravity CLI
+│   ├── net_tools.py            # Utilitários de rede (Ping, MTR, DNS, RDAP)
+│   ├── session.py              # Máquina de estados do companion
+│   └── cli_bridge.py           # Ponte oficial com a Google Antigravity CLI (agy)
 ├── gui/
 │   ├── styles.py               # QSS Dark Mode e design system NOC
 │   ├── widget.py               # Desktop Companion: Mascote com olhos expressivos, Context Drop e Dynamic Island
-│   ├── approval_pill.py        # Pílula flutuante de autorização rápida pré-flight (Coucou-style)
-│   ├── chat_panel.py           # Painel lateral expansível com atalhos de NOC
+│   ├── approval_pill.py        # Pílula flutuante de autorização rápida pré-flight
 │   └── tray.py                 # Ícone na bandeja do sistema
 ├── wiki/                       # Base de conhecimento SSOT em Markdown (Obsidian)
 └── tests/                      # Suíte de testes automatizados com pytest (20 testes)
@@ -60,37 +110,39 @@ harness-isp/
 
 ---
 
-## 3. Instalação e Execução
+## 🚀 Como Executar
+
+### 1. Iniciar o Companion no Desktop (Workstation / Alienware)
 
 ```bash
-# 1. Clone ou acesse o diretório
-git clone https://github.com/brncesarms/harness-isp.git
-cd harness-isp
+# Executa o launcher nativo
+harness-isp
+```
+> *Ao clicar no mascote, o Kitty abre instantaneamente na esteira do CT 249 rodando a `agy`.*
 
-# 2. Crie e ative o ambiente virtual
-python3 -m venv .venv
+### 2. Acesso Direto via Terminal
+
+```bash
+# Conexão transparente com a esteira do CT 249
+ssh -t harness-isp "cd /home/brn/harness-isp && agy"
+```
+
+### 3. Rodar a Suíte de Testes
+
+```bash
+# Executado dentro do repositório
 source .venv/bin/activate
-
-# 3. Instale as dependências
-pip install -r requirements.txt
-
-# 4. Execute a suíte de testes
 pytest -v
-
-# 5. Inicie o companion
-python main.py
 ```
 
 ---
 
-## 4. Cobertura de Testes
+## 🧪 Cobertura de Testes Automatizados (20/20)
 
-Os 20 testes cobrem:
-* **Coucou-Style Companion:** Instanciação, física de arraste, alternância Dynamic Island e renderização facial.
-* **Pre-flight Approval Pill:** Disparo de popup flutuante, atalhos de teclado e decisões Safe-Mode/Abort.
-* **Context Dropping:** Recepção de arquivos de script e rotas.
-* **Anti-Lockout:** Detecção de regras de drop na chain input, alteração de MTU e bloqueio de SSH.
+* **Coucou-Style Companion:** Instanciação, física elástica, alternância Dynamic Island e renderização facial.
+* **Pre-flight Approval Pill:** Interceptação flutuante, atalhos de teclado e decisões Safe-Mode/Abort.
+* **Anti-Lockout Shield:** Detecção de regras suicidas de firewall, MTU e bloqueio de SSH.
 * **Cofre Seguro:** Criptografia AES-256-GCM com isolamento contra vazamento de credenciais.
-* **Token Economy (RTK):** Resumo sintético de tabelas de BGP, ping ICMP, traceroute e potências ópticas de OLT.
-* **FTTH Engine:** Avaliação de níveis de atenuação óptica (Class B+/C+) e parsing de display ont autofind.
+* **Token Economy (RTK):** Resumo sintético de tabelas de BGP, ping ICMP e potências ópticas.
+* **FTTH Engine:** Avaliação de níveis ópticos Class B+/C+ e parsing de ONUs.
 * **RAG SQLite FTS5:** Indexação e busca atômica de notas técnicas e topologia de POPs.
