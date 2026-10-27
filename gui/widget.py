@@ -1,19 +1,24 @@
 """Floating Desktop Companion Widget (Coucou-Inspired Mascot & Dynamic Island) in PySide6.
 
 Faithfully inspired by Louis-CFM/coucou:
-1. Mochi Anatomical Superellipse: Soft squircle body with pearl-matte gradient and reactive NOC state tints.
-2. Expressive Eye Engine: Reactive pill eyes, natural cursor gaze tracking, blinking, and dynamic expressions:
-   - PILL: Classical attentive companion tracking the user's cursor across screens.
-   - HAPPY: Joyous curved arcs (^ ^) upon completing tasks or being petted.
-   - WIDE: Wide-open pupils during network alerts or surprises.
-   - SPIRAL: Dizzy spinning eyes when rapidly poked.
-   - CLOSED: Gentle sleeping eyes when idle for extended periods.
-3. Interactive Mechanics:
+1. Authentic Mochi Anatomy: Soft pearlescent squircle with large forehead, lower-third face placement,
+   rosy pastel cheeks set outward, and subtle state tinting without harsh halos.
+2. Coucou Signature Shoulder Badges:
+   - IDLE_OK: Sleek emerald dot with black rim.
+   - PROCESSING: Purple pill badge with animated jumping dots (...) and lavender belly tint.
+   - ALERT: Crimson badge with exclamation mark (!) and warning belly tint.
+3. Expressive Eye Dynamics & Real-Time Cursor Gaze:
+   - PILL: Attentive companion eyes in lower third tracking the user's cursor across screens.
+   - HAPPY: Joyous curved arcs (^ ^) upon finishing tasks or swallowing context.
+   - WIDE: Wide-open pupils during network alerts.
+   - SPIRAL: Spinning Archimedean spirals when rapidly poked (Dizzy state).
+   - CLOSED: Peaceful sleeping eyes when idle for extended periods.
+4. Interactive Mechanics:
    - Poke & Dizzy: Playful squash response on click; becomes dizzy with spiral eyes if clicked repeatedly.
-   - Context Dropping (Mailbox Slot Morph): Mouth slot opens when dragging network configs (.rsc, .log);
+   - Context Dropping (Mailbox Slot Morph): Mouth slot opens at top when dragging network configs;
      swallows and chews happily on drop.
    - Happy Jump: Elastic celebration leap on task completion.
-4. Dynamic Island Pill: Smooth toggle to horizontal dark-glass status HUD with mini-Mochi avatar.
+5. Dynamic Island Pill: Smooth toggle to horizontal dark-glass status HUD with mini-Mochi avatar.
 """
 
 from __future__ import annotations
@@ -65,7 +70,7 @@ class EyeShape(str, Enum):
 
 
 def _build_mochi_path(cx: float, cy: float, rx: float, ry: float, n_points: int = 72) -> QPainterPath:
-    """Build Coucou's signature superellipse (squircle) path with exponent ~2.0/2.7."""
+    """Build Coucou's signature superellipse (squircle) path with exponent 2.0/2.7."""
     path = QPainterPath()
     exp_n = 2.0 / 2.7
     for i in range(n_points + 1):
@@ -104,7 +109,7 @@ class FloatingBallWidget(QWidget):
         # Presentation Mode: 'ball' (Coucou Mochi Mascot) or 'pill' (Dynamic Island)
         self.mode = "ball"
 
-        # Dimensions: Coucou aspect ratio rx=1.14 * R, ry=0.88 * R
+        # Dimensions: Coucou aspect ratio rx=1.15 * R, ry=0.88 * R
         self._ball_size = 90
         self._pill_width = 320
         self._pill_height = 48
@@ -131,13 +136,14 @@ class FloatingBallWidget(QWidget):
         self.idle_angle = 0.0
         self.pulse_phase = 0.0
         self.spiral_phase = 0.0
+        self.dots_phase = 0.0
         self.tilt_angle = 0.0
         self.squash_x = 1.0
         self.squash_y = 1.0
         self.jump_offset_y = 0.0
         self.jump_velocity = 0.0
-        self.blush_intensity = 0.4   # 0.0 to 1.0 (blush glow)
-        self.slot_open = 0.0         # 0.0 to 1.0 (mailbox swallow morph)
+        self.blush_intensity = 0.7   # Rosy cheeks
+        self.slot_open = 0.0         # Mailbox swallow morph
         self.is_chewing = False
         self.chew_timer = 0.0
 
@@ -159,7 +165,7 @@ class FloatingBallWidget(QWidget):
         self.animation_timer.timeout.connect(self._tick_animations)
         self.animation_timer.start(33)
 
-        # Periodic Blink Timer (natural cadence 3.5s - 5s)
+        # Periodic Blink Timer (cadence 3.5s - 5s)
         self.blink_timer = QTimer(self)
         self.blink_timer.timeout.connect(self._trigger_blink)
         self.blink_timer.start(3800)
@@ -175,13 +181,11 @@ class FloatingBallWidget(QWidget):
 
         if state == BallState.ALERT:
             self.eye_shape_override = EyeShape.WIDE
-            self.blush_intensity = 0.1
         elif state == BallState.IDLE_OK and old_state in (BallState.PROCESSING, BallState.ALERT):
             # Task finished: Celebrate with Coucou Happy Jump!
             self.happy_jump()
         elif state == BallState.PROCESSING:
             self.eye_shape_override = None
-            self.blush_intensity = 0.5
         else:
             self.eye_shape_override = None
 
@@ -203,16 +207,17 @@ class FloatingBallWidget(QWidget):
         self.update()
 
     def happy_jump(self) -> None:
-        """Coucou-signature happy jump with celebration eyes and blush."""
+        """Coucou-signature happy celebration leap."""
         self.jump_velocity = -7.5
         self.eye_shape_override = EyeShape.HAPPY
-        self.blush_intensity = 0.95
+        self.blush_intensity = 1.0
         QTimer.singleShot(1600, self._reset_override)
         self.update()
 
     def _reset_override(self) -> None:
         if not self.is_dizzy and not self.is_chewing:
             self.eye_shape_override = None
+            self.blush_intensity = 0.7
         self.update()
 
     # --- Internal Animation Engine ---
@@ -235,6 +240,7 @@ class FloatingBallWidget(QWidget):
         # 1. Idle Breathing and Subtle Floating
         self.idle_angle = (self.idle_angle + 0.05) % (2.0 * math.pi)
         self.pulse_phase = (self.pulse_phase + 0.09) % (2.0 * math.pi)
+        self.dots_phase = (self.dots_phase + 0.15) % (2.0 * math.pi)
 
         # 2. Dizzy Recovery Timer
         if self.is_dizzy:
@@ -244,21 +250,21 @@ class FloatingBallWidget(QWidget):
                 self.is_dizzy = False
                 self.tilt_angle = 0.0
                 self.eye_shape_override = None
-                self.blush_intensity = 0.4
+                self.blush_intensity = 0.7
         else:
             self.tilt_angle = 0.0
 
         # 3. Chew Animation (after swallowing network context)
         if self.is_chewing:
             self.chew_timer += 0.2
-            self.squash_y = 1.0 + math.sin(self.chew_timer * 4.0) * 0.07
+            self.squash_y = 1.0 + math.sin(self.chew_timer * 4.0) * 0.06
             self.squash_x = 1.0 - math.sin(self.chew_timer * 4.0) * 0.04
             if self.chew_timer >= 2.5:
                 self.is_chewing = False
                 self.squash_x = 1.0
                 self.squash_y = 1.0
                 self.eye_shape_override = None
-                self.blush_intensity = 0.4
+                self.blush_intensity = 0.7
 
         # 4. Happy Jump Physics
         if abs(self.jump_velocity) > 0.1 or abs(self.jump_offset_y) > 0.1:
@@ -277,7 +283,7 @@ class FloatingBallWidget(QWidget):
 
         # 5. Mailbox Slot Morph (Opens when file hovered)
         target_slot = 1.0 if self.is_drag_hovered else 0.0
-        self.slot_open += (target_slot - self.slot_open) * 0.2
+        self.slot_open += (target_slot - self.slot_open) * 0.22
 
         # 6. Real-time Cursor Gaze Tracking (Coucou Gaze Engine)
         if not self.is_dizzy and not self.is_sleeping and not self.is_chewing:
@@ -287,7 +293,7 @@ class FloatingBallWidget(QWidget):
                 self.target_look_y = -0.85
             elif self.ball_state == BallState.PROCESSING:
                 # Thinking scan motion
-                self.target_look_x = math.sin(self.idle_angle * 1.8) * 0.65
+                self.target_look_x = math.sin(self.idle_angle * 1.8) * 0.55
                 self.target_look_y = 0.0
             else:
                 # Track user's actual mouse cursor on screen
@@ -374,13 +380,13 @@ class FloatingBallWidget(QWidget):
             self.is_dizzy = True
             self.dizzy_until = now + 2.4
             self.eye_shape_override = EyeShape.SPIRAL
-            self.blush_intensity = 0.95
+            self.blush_intensity = 1.0
             self.poke_history.clear()
         else:
             # Single poke reaction: squash and cute blink
             self.squash_y = 0.88
             self.squash_x = 1.10
-            self.blush_intensity = min(1.0, self.blush_intensity + 0.3)
+            self.blush_intensity = 1.0
             self._trigger_blink()
 
     # --- Drag & Drop Context Dropping (Coucou Mailbox Morph) ---
@@ -429,7 +435,7 @@ class FloatingBallWidget(QWidget):
             self._paint_dynamic_island(painter)
 
     def _paint_coucou_mascot(self, painter: QPainter) -> None:
-        """Render Coucou's Mochi: Pearlescent squircle, state glow, cheeks and expressive eyes."""
+        """Render true Coucou Mochi: Authentic superellipse, pearlescent gradient, lower-third face."""
         width = self.width()
         height = self.height()
 
@@ -437,9 +443,9 @@ class FloatingBallWidget(QWidget):
         idle_float = math.sin(self.idle_angle) * 2.2
         center_y = (height / 2.0) + idle_float + self.jump_offset_y
 
-        # Proportions: Coucou Mochi has rx = 1.14 * R, ry = 0.88 * R
+        # Proportions: Coucou Mochi has rx = 1.15 * R, ry = 0.88 * R
         base_r = (self._ball_size / 2.0)
-        rx = (base_r * 1.14) * self.squash_x
+        rx = (base_r * 1.15) * self.squash_x
         ry = (base_r * 0.88) * self.squash_y
 
         # Dynamic inertia stretch during drag
@@ -455,40 +461,34 @@ class FloatingBallWidget(QWidget):
             painter.rotate(self.tilt_angle)
             painter.translate(-center_x, -center_y)
 
-        # 1. Soft Floor Shadow (diminishes when jumping)
-        shadow_alpha = int(max(0, 50 - abs(self.jump_offset_y) * 2.5))
+        # 1. Soft Floor Shadow (clean and soft, diminishes when jumping)
+        shadow_alpha = int(max(0, 75 - abs(self.jump_offset_y) * 3.5))
         if shadow_alpha > 0:
-            shadow_rect = QRectF(center_x - rx * 0.75, height - 12, rx * 1.5, 8)
-            painter.setBrush(QBrush(QColor(0, 0, 0, shadow_alpha)))
+            shadow_rect = QRectF(center_x - rx * 0.72, center_y + ry + 3, rx * 1.44, 10)
+            shadow_grad = QRadialGradient(center_x, center_y + ry + 8, rx * 0.72)
+            shadow_grad.setColorAt(0.0, QColor(0, 0, 0, shadow_alpha))
+            shadow_grad.setColorAt(1.0, QColor(0, 0, 0, 0))
+            painter.setBrush(QBrush(shadow_grad))
             painter.setPen(Qt.NoPen)
             painter.drawEllipse(shadow_rect)
 
-        # 2. Status Halo / Outer Ambient Glow
-        halo_color = self._get_halo_color()
-        halo_grad = QRadialGradient(center_x, center_y, max(rx, ry) + 12)
-        halo_grad.setColorAt(0.68, halo_color)
-        halo_grad.setColorAt(1.0, QColor(0, 0, 0, 0))
-        painter.setBrush(QBrush(halo_grad))
-        painter.setPen(Qt.NoPen)
-        painter.drawEllipse(QPointF(center_x, center_y), rx + 10, ry + 10)
-
-        # 3. Mochi Anatomical Superellipse Body Path
+        # 2. Mochi Anatomical Superellipse Body Path
         body_path = _build_mochi_path(center_x, center_y, rx, ry)
 
-        # 4. Coucou Body Base: Velvety Pearl Off-White Gradient
-        # Top: #F1F2F5, Bottom: #CBD0D8
+        # 3. Coucou Body Base: Soft Pearlescent Cream / White Gradient
         body_grad = QLinearGradient(center_x, center_y - ry, center_x, center_y + ry)
-        body_grad.setColorAt(0.0, QColor(241, 242, 245))
-        body_grad.setColorAt(1.0, QColor(203, 208, 216))
+        body_grad.setColorAt(0.0, QColor(254, 254, 255))
+        body_grad.setColorAt(0.65, QColor(244, 244, 248))
+        body_grad.setColorAt(1.0, QColor(218, 220, 228))
         painter.setBrush(QBrush(body_grad))
-        painter.setPen(QPen(QColor(255, 255, 255, 120), 1.0))
+        painter.setPen(Qt.NoPen)
         painter.drawPath(body_path)
 
-        # 5. State Tint Lighting from Base (Coucou State Tinting)
-        tint_color, tint_opacity = self._get_state_tint()
-        if tint_opacity > 0.01:
-            tint_grad = QLinearGradient(center_x, center_y + ry, center_x, center_y - ry * 0.3)
-            tint_grad.setColorAt(0.0, QColor(tint_color.red(), tint_color.green(), tint_color.blue(), int(255 * tint_opacity)))
+        # 4. Subtle State Tint on the lower belly (Coucou belly tint)
+        tint_color, tint_alpha = self._get_belly_tint()
+        if tint_alpha > 0:
+            tint_grad = QLinearGradient(center_x, center_y + ry, center_x, center_y)
+            tint_grad.setColorAt(0.0, QColor(tint_color.red(), tint_color.green(), tint_color.blue(), tint_alpha))
             tint_grad.setColorAt(1.0, QColor(tint_color.red(), tint_color.green(), tint_color.blue(), 0))
             painter.save()
             painter.setClipPath(body_path)
@@ -497,26 +497,29 @@ class FloatingBallWidget(QWidget):
             painter.drawPath(body_path)
             painter.restore()
 
-        # 6. Upper Specular Shine (Glossy Mochi Highlight)
-        shine_grad = QRadialGradient(center_x - rx * 0.25, center_y - ry * 0.5, rx * 0.8)
-        shine_grad.setColorAt(0.0, QColor(255, 255, 255, 160))
-        shine_grad.setColorAt(1.0, QColor(255, 255, 255, 0))
+        # 5. Top Specular Shine (Soft diffuse highlight)
+        shine_grad = QRadialGradient(center_x - rx * 0.2, center_y - ry * 0.45, rx * 0.8)
+        shine_grad.setColorAt(0.0, QColor(255, 255, 255, 175))
+        shine_grad.setColorAt(0.8, QColor(255, 255, 255, 0))
         painter.save()
         painter.setClipPath(body_path)
         painter.setBrush(QBrush(shine_grad))
         painter.setPen(Qt.NoPen)
-        painter.drawEllipse(QPointF(center_x - rx * 0.25, center_y - ry * 0.45), rx * 0.7, ry * 0.35)
+        painter.drawEllipse(QPointF(center_x - rx * 0.2, center_y - ry * 0.4), rx * 0.7, ry * 0.35)
         painter.restore()
 
-        # 7. Mailbox Slot Morph (Opens during file drag)
+        # 6. Mailbox Slot Morph (Opens during file drag)
         if self.slot_open > 0.02:
             self._paint_mailbox_slot(painter, body_path, center_x, center_y, rx, ry)
 
-        # 8. Rosy Cheeks (Blush)
+        # 7. Rosy Pastel Cheeks (Coucou Blush: Set outward, above eye level!)
         self._paint_blush(painter, center_x, center_y, rx, ry)
 
-        # 9. Expressive Mochi Eyes
+        # 8. Expressive Mochi Eyes (Coucou: Positioned in the lower-third!)
         self._paint_eyes(painter, center_x, center_y, rx, ry)
+
+        # 9. Coucou Signature Shoulder Badge (Status Dot or Thinking Pill)
+        self._paint_shoulder_badge(painter, center_x, center_y, rx, ry)
 
         # 10. Sleeping Zzz particles
         if self.is_sleeping:
@@ -524,38 +527,83 @@ class FloatingBallWidget(QWidget):
 
         painter.restore()
 
-    def _get_halo_color(self) -> QColor:
+    def _get_belly_tint(self) -> tuple[QColor, int]:
+        """Subtle belly tint matching Coucou's state glows without covering the character."""
         if self.ball_state == BallState.IDLE_OK:
-            alpha = 140 if not self.is_drag_hovered else 220
-            return QColor(6, 182, 212, alpha)
+            return QColor(16, 185, 129), 35
         elif self.ball_state == BallState.PROCESSING:
-            pulse = int(140 + 70 * math.sin(self.pulse_phase))
-            return QColor(59, 130, 246, pulse)
+            pulse = int(50 + 25 * math.sin(self.pulse_phase))
+            return QColor(139, 92, 246), pulse
         else:  # ALERT
-            pulse = int(160 + 90 * math.sin(self.pulse_phase * 1.5))
-            return QColor(239, 68, 68, pulse)
-
-    def _get_state_tint(self) -> tuple[QColor, float]:
-        if self.ball_state == BallState.IDLE_OK:
-            return QColor(16, 185, 129), 0.28
-        elif self.ball_state == BallState.PROCESSING:
-            pulse = 0.35 + 0.15 * math.sin(self.pulse_phase)
-            return QColor(59, 130, 246), pulse
-        else:  # ALERT
-            pulse = 0.50 + 0.25 * math.sin(self.pulse_phase * 1.5)
+            pulse = int(70 + 35 * math.sin(self.pulse_phase * 1.5))
             return QColor(239, 68, 68), pulse
 
+    def _paint_shoulder_badge(self, painter: QPainter, cx: float, cy: float, rx: float, ry: float) -> None:
+        """Render Coucou's iconic status badge on the upper-left shoulder."""
+        bx = cx - rx * 0.74
+        by = cy - ry * 0.65
+
+        if self.ball_state == BallState.PROCESSING:
+            # Coucou Thinking Pill: Purple pill with 3 animated white dots (...)
+            pill_w = 34.0
+            pill_h = 18.0
+            pill_rect = QRectF(bx - pill_w / 2.0, by - pill_h / 2.0, pill_w, pill_h)
+
+            # Black border
+            painter.setBrush(QBrush(QColor(0, 0, 0)))
+            painter.setPen(Qt.NoPen)
+            painter.drawRoundedRect(pill_rect.adjusted(-2, -2, 2, 2), (pill_h + 4) / 2.0, (pill_h + 4) / 2.0)
+
+            # Purple fill
+            painter.setBrush(QBrush(QColor(139, 92, 246)))
+            painter.drawRoundedRect(pill_rect, pill_h / 2.0, pill_h / 2.0)
+
+            # 3 Animated jumping dots
+            painter.setBrush(QBrush(QColor(255, 255, 255)))
+            dot_spacing = 7.5
+            for i in range(3):
+                phase_offset = self.dots_phase - (i * 0.8)
+                jump = max(0.0, math.sin(phase_offset)) * 2.2
+                dx = (i - 1) * dot_spacing
+                painter.drawEllipse(QPointF(bx + dx, by - jump), 2.2, 2.2)
+
+        elif self.ball_state == BallState.ALERT:
+            # Coucou Alert Badge: Red circle with white exclamation mark (!)
+            radius = 11.0
+            painter.setBrush(QBrush(QColor(0, 0, 0)))
+            painter.setPen(Qt.NoPen)
+            painter.drawEllipse(QPointF(bx, by), radius + 2, radius + 2)
+
+            pulse_col = QColor(239, 68, 68)
+            painter.setBrush(QBrush(pulse_col))
+            painter.drawEllipse(QPointF(bx, by), radius, radius)
+
+            # White Exclamation Mark
+            painter.setPen(QPen(QColor(255, 255, 255), 2.2, Qt.SolidLine, Qt.RoundCap))
+            painter.drawLine(QPointF(bx, by - 4.5), QPointF(bx, by + 1.0))
+            painter.drawPoint(QPointF(bx, by + 4.5))
+
+        else:
+            # Coucou Normal/Finished Dot: Crisp Emerald circle with dark outline
+            radius = 8.5
+            painter.setBrush(QBrush(QColor(0, 0, 0)))
+            painter.setPen(Qt.NoPen)
+            painter.drawEllipse(QPointF(bx, by), radius + 2, radius + 2)
+
+            painter.setBrush(QBrush(QColor(16, 185, 129)))
+            painter.drawEllipse(QPointF(bx, by), radius, radius)
+
     def _paint_blush(self, painter: QPainter, cx: float, cy: float, rx: float, ry: float) -> None:
-        """Render soft rosy blush ovals."""
-        alpha = int(clamp(self.blush_intensity * 180.0, 20.0, 220.0))
-        blush_color = QColor(255, 120, 150, alpha)
+        """Render Coucou's soft rosy pastel blush ovals placed outward and above eyes."""
+        alpha = int(clamp(self.blush_intensity * 210.0, 40.0, 240.0))
+        blush_color = QColor(249, 183, 198, alpha)
         painter.setBrush(QBrush(blush_color))
         painter.setPen(Qt.NoPen)
 
         blush_rx = rx * 0.18
-        blush_ry = ry * 0.11
-        blush_y = cy + ry * 0.18
-        blush_spacing = rx * 0.54
+        blush_ry = ry * 0.10
+        blush_y = cy + ry * 0.16  # Above eye level!
+        blush_spacing = rx * 0.60
 
         painter.drawEllipse(QPointF(cx - blush_spacing, blush_y), blush_rx, blush_ry)
         painter.drawEllipse(QPointF(cx + blush_spacing, blush_y), blush_rx, blush_ry)
@@ -570,10 +618,10 @@ class FloatingBallWidget(QWidget):
         ry: float,
     ) -> None:
         """Render Coucou's mailbox slot cutout inside the squircle face."""
-        slot_w = rx * 1.40 * self.slot_open
-        slot_h = ry * 0.34 * self.slot_open
+        slot_w = rx * 1.35 * self.slot_open
+        slot_h = ry * 0.32 * self.slot_open
         slot_x = cx - slot_w / 2.0
-        slot_y = cy - ry * 0.92 + (ry * 0.10 * self.slot_open)
+        slot_y = cy - ry * 0.94 + (ry * 0.10 * self.slot_open)
 
         painter.save()
         painter.setClipPath(body_path)
@@ -587,7 +635,7 @@ class FloatingBallWidget(QWidget):
         painter.setPen(Qt.NoPen)
         painter.drawRoundedRect(slot_rect, slot_h / 2.0, slot_h / 2.0)
 
-        # Top Rim Highlight (1pt white 60% line)
+        # Top Rim Highlight (1pt white line)
         rim_alpha = int(160 * self.slot_open)
         painter.setPen(QPen(QColor(255, 255, 255, rim_alpha), 1.2, Qt.SolidLine, Qt.RoundCap))
         painter.drawLine(QPointF(slot_x + 6, slot_y + 0.5), QPointF(slot_x + slot_w - 6, slot_y + 0.5))
@@ -595,43 +643,43 @@ class FloatingBallWidget(QWidget):
         painter.restore()
 
     def _paint_eyes(self, painter: QPainter, cx: float, cy: float, rx: float, ry: float) -> None:
-        """Render Coucou's lively eyes with cursor tracking and expressions."""
+        """Render Coucou's signature eyes placed in the lower-third with cursor tracking."""
         shape = self.eye_shape_override or EyeShape.PILL
-        ink_color = QColor(20, 26, 36)
+        ink_color = QColor(24, 24, 28)
 
-        # Eye Positioning (Coucou eye spacing ~0.37 * R)
-        eye_y = cy - ry * 0.08
-        eye_spacing = rx * 0.37
-        base_w = 7.5
-        base_h = 12.0
+        # Coucou Eye Positioning: Lower-third of body!
+        eye_y = cy + ry * 0.38
+        eye_spacing = rx * 0.36
+        base_w = 9.5
+        base_h = 14.5
 
         for side in (-1.0, 1.0):
             eye_cx = cx + (side * eye_spacing)
             eye_cy = eye_y
 
-            # Inverted gaze offset applied to pupils/eyes
-            look_offset_x = self.eye_look_x * 2.8
-            look_offset_y = self.eye_look_y * 2.5
+            # Dynamic gaze offset applied to pupils/eyes
+            look_offset_x = self.eye_look_x * 2.5
+            look_offset_y = self.eye_look_y * 2.2
             eye_cx += look_offset_x
             eye_cy += look_offset_y
 
             painter.save()
 
             if shape == EyeShape.HAPPY:
-                # Upward curving joyous arcs (^ ^)
+                # Coucou Happy: Joyous thick curved arcs (^ ^) exactly like char_state_finished.png
                 arc_path = QPainterPath()
-                arc_w = base_w * 1.3
-                arc_h = base_h * 0.9
-                arc_path.moveTo(eye_cx - arc_w / 2.0, eye_cy + arc_h * 0.2)
-                arc_path.quadTo(eye_cx, eye_cy - arc_h * 0.6, eye_cx + arc_w / 2.0, eye_cy + arc_h * 0.2)
-                pen = QPen(ink_color, 2.6, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
+                arc_w = base_w * 1.5
+                arc_h = base_h * 0.8
+                arc_path.moveTo(eye_cx - arc_w / 2.0, eye_cy + arc_h * 0.15)
+                arc_path.quadTo(eye_cx, eye_cy - arc_h * 0.65, eye_cx + arc_w / 2.0, eye_cy + arc_h * 0.15)
+                pen = QPen(ink_color, 3.4, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
                 painter.setPen(pen)
                 painter.setBrush(Qt.NoBrush)
                 painter.drawPath(arc_path)
 
             elif shape == EyeShape.WIDE:
-                # Wide attentive eyes with large round pupil
-                wide_w = base_w * 1.3
+                # Coucou Wide: Big round attentive eyes
+                wide_w = base_w * 1.4
                 wide_h = base_h * 1.2
                 painter.setBrush(QBrush(ink_color))
                 painter.setPen(Qt.NoPen)
@@ -641,12 +689,12 @@ class FloatingBallWidget(QWidget):
                 painter.drawEllipse(QPointF(eye_cx + 1.2, eye_cy - 2.0), 1.8, 1.8)
 
             elif shape == EyeShape.SPIRAL:
-                # Coucou Dizzy Spiral (spinning Archimedean spiral)
+                # Coucou Dizzy: Spinning Archimedean spiral matching dizzy.png
                 spiral_path = QPainterPath()
-                steps = 24
+                steps = 26
                 for s in range(steps):
-                    a = (s / steps) * 4.0 * math.pi
-                    r = (s / steps) * (base_w * 0.8)
+                    a = (s / steps) * 4.2 * math.pi
+                    r = (s / steps) * (base_w * 0.85)
                     ang = a + self.spiral_phase * side
                     px = eye_cx + math.cos(ang) * r
                     py = eye_cy + math.sin(ang) * r
@@ -654,37 +702,29 @@ class FloatingBallWidget(QWidget):
                         spiral_path.moveTo(px, py)
                     else:
                         spiral_path.lineTo(px, py)
-                pen = QPen(ink_color, 2.0, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
+                pen = QPen(ink_color, 2.2, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
                 painter.setPen(pen)
                 painter.setBrush(Qt.NoBrush)
                 painter.drawPath(spiral_path)
 
             elif shape == EyeShape.CLOSED:
-                # Sleeping peaceful closed arcs
+                # Sleeping peaceful downward curves
                 close_path = QPainterPath()
                 arc_w = base_w * 1.3
-                arc_h = base_h * 0.7
+                arc_h = base_h * 0.65
                 close_path.moveTo(eye_cx - arc_w / 2.0, eye_cy - arc_h * 0.1)
                 close_path.quadTo(eye_cx, eye_cy + arc_h * 0.5, eye_cx + arc_w / 2.0, eye_cy - arc_h * 0.1)
-                pen = QPen(ink_color, 2.4, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
+                pen = QPen(ink_color, 2.8, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
                 painter.setPen(pen)
                 painter.setBrush(Qt.NoBrush)
                 painter.drawPath(close_path)
 
-            else:  # EyeShape.PILL (Default Coucou Mochi Eye)
-                # Modulated by blink_factor
-                effective_h = max(2.0, base_h * (1.0 - self.blink_factor))
+            else:  # EyeShape.PILL (Authentic Coucou Mochi Pill Eye)
+                effective_h = max(2.5, base_h * (1.0 - self.blink_factor))
                 eye_rect = QRectF(eye_cx - base_w / 2.0, eye_cy - effective_h / 2.0, base_w, effective_h)
                 painter.setBrush(QBrush(ink_color))
                 painter.setPen(Qt.NoPen)
                 painter.drawRoundedRect(eye_rect, base_w / 2.0, base_w / 2.0)
-
-                # Catchlight sparkle (only visible when eyes open)
-                if self.blink_factor < 0.4:
-                    sparkle_x = eye_cx + 1.2
-                    sparkle_y = eye_cy - effective_h * 0.22
-                    painter.setBrush(QBrush(QColor(255, 255, 255, 230)))
-                    painter.drawEllipse(QPointF(sparkle_x, sparkle_y), 1.5, 1.8)
 
             painter.restore()
 
@@ -697,8 +737,8 @@ class FloatingBallWidget(QWidget):
 
         # Floating offset based on idle angle
         float_y = math.sin(self.idle_angle) * 3.0
-        painter.drawText(int(cx + rx * 0.7), int(cy - ry * 0.6 + float_y), "z")
-        painter.drawText(int(cx + rx * 0.95), int(cy - ry * 0.9 + float_y * 1.3), "Z")
+        painter.drawText(int(cx + rx * 0.7), int(cy - ry * 0.4 + float_y), "z")
+        painter.drawText(int(cx + rx * 0.95), int(cy - ry * 0.7 + float_y * 1.3), "Z")
         painter.restore()
 
     # --- Dynamic Island Mode Painting ---
@@ -720,27 +760,31 @@ class FloatingBallWidget(QWidget):
         # Mini Coucou Mochi Avatar on Left
         mini_cx = 26.0
         mini_cy = self.height() / 2.0
-        mini_rx = 13.0
-        mini_ry = 10.0
+        mini_rx = 13.5
+        mini_ry = 10.5
 
         mini_path = _build_mochi_path(mini_cx, mini_cy, mini_rx, mini_ry, n_points=36)
         mini_grad = QLinearGradient(mini_cx, mini_cy - mini_ry, mini_cx, mini_cy + mini_ry)
-        mini_grad.setColorAt(0.0, QColor(241, 242, 245))
-        mini_grad.setColorAt(1.0, QColor(203, 208, 216))
+        mini_grad.setColorAt(0.0, QColor(254, 254, 255))
+        mini_grad.setColorAt(1.0, QColor(218, 220, 228))
         painter.setBrush(QBrush(mini_grad))
         painter.setPen(Qt.NoPen)
         painter.drawPath(mini_path)
 
         # Mini Rosy Cheeks
-        painter.setBrush(QBrush(QColor(255, 120, 150, 160)))
-        painter.drawEllipse(QPointF(mini_cx - 6.5, mini_cy + 2.0), 2.2, 1.5)
-        painter.drawEllipse(QPointF(mini_cx + 6.5, mini_cy + 2.0), 2.2, 1.5)
+        painter.setBrush(QBrush(QColor(249, 183, 198, 210)))
+        painter.drawEllipse(QPointF(mini_cx - 7.5, mini_cy + 1.2), 2.4, 1.5)
+        painter.drawEllipse(QPointF(mini_cx + 7.5, mini_cy + 1.2), 2.4, 1.5)
 
-        # Mini Eye Dots
-        painter.setBrush(QBrush(QColor(20, 26, 36)))
-        look_dx = self.eye_look_x * 1.5
-        painter.drawEllipse(QPointF(mini_cx - 4.0 + look_dx, mini_cy - 1.0), 1.8, 2.5)
-        painter.drawEllipse(QPointF(mini_cx + 4.0 + look_dx, mini_cy - 1.0), 1.8, 2.5)
+        # Mini Eye Dots (Lower third!)
+        painter.setBrush(QBrush(QColor(24, 24, 28)))
+        look_dx = self.eye_look_x * 1.2
+        painter.drawEllipse(QPointF(mini_cx - 4.5 + look_dx, mini_cy + 3.0), 1.8, 2.5)
+        painter.drawEllipse(QPointF(mini_cx + 4.5 + look_dx, mini_cy + 3.0), 1.8, 2.5)
+
+        # Mini Shoulder Dot
+        painter.setBrush(QBrush(QColor(16, 185, 129)))
+        painter.drawEllipse(QPointF(mini_cx - mini_rx * 0.7, mini_cy - mini_ry * 0.6), 2.2, 2.2)
 
         # NOC Live Telemetry Summary
         painter.setPen(QColor(226, 232, 240))
