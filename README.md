@@ -27,17 +27,16 @@ Ele combina:
 ```text
 harness-isp/
 ├── main.py                     # Entrypoint e inicialização da aplicação PySide6
+├── AGENTS.md                   # Contrato de governança, comandos determinísticos e zero leaks
 ├── requirements.txt            # Dependências pinadas (PySide6, pydantic, cryptography, jc, pytest)
 ├── README.md                   # Documentação do projeto
-├── prompt-harness-isp.md       # v0: Especificação inicial (Alienware)
-├── prompt-harness-isp-v1.md    # v1: Sessão daemon, Wayland, RAG, RTK e Vault
-├── prompt-harness-isp-v2.md    # v2: Anti-Lockout & Rollbacks temporizados
-├── prompt-harness-isp-v3.md    # v3: OLTs Huawei, ZTE, Fiberhome e Datacom
+├── prompt-harness-isp-v3.md    # Especificação master (Anti-Lockout, OLTs Multivendor, RAG)
 ├── core/
 │   ├── storage.py              # Gestão do workspace (~/HarnessISP_Data) e backups prévios
 │   ├── vault.py                # Cofre AES-256-GCM (Zero Leaks)
-│   ├── token_optimizer.py      # Compressão RTK de saídas de rede e BGP
-│   ├── memory_rag.py           # SQLite FTS5 para documentação e histórico de falhas
+│   ├── token_optimizer.py      # Hook e compressor RTK nativo (Rust v1.1.0)
+│   ├── memory_rag.py           # Ingestor SQLite FTS5 sincronizado com Markdown
+│   ├── reflect.py              # Gerador de notas atômicas pós-incidente / post-mortem
 │   ├── failsafe_guard.py       # Validador Anti-Lockout, Safe Mode e Rollbacks
 │   ├── ftth_engine.py          # Diagnósticos ópticos e provisionamento OLT
 │   ├── net_tools.py            # Utilitários determinísticos (Ping, MTR, DNS, RDAP)
@@ -48,6 +47,13 @@ harness-isp/
 │   ├── widget.py               # Esfera flutuante, física de mola e halo LED
 │   ├── chat_panel.py           # Painel lateral expansível com atalhos de NOC
 │   └── tray.py                 # Ícone na bandeja do sistema
+├── wiki/                       # Base de conhecimento SSOT em Markdown (Obsidian)
+│   ├── sops/                   # Procedimentos operacionais padrão (Lockout, GPON, etc.)
+│   ├── pops/                   # Topologia e inventário de POPs
+│   ├── incidentes/             # Post-mortems de rompimentos de fibra e flaps
+│   ├── olts/                   # Referência técnica e perfis Huawei, ZTE, Fiberhome, Datacom
+│   ├── notes/                  # Notas atômicas geradas pelo reflect (NOTA-XXXX)
+│   └── dashboards/             # Painéis de telemetria compatíveis com Obsidian Dataview
 ├── skills/                     # Skills nativas para a Antigravity CLI
 │   ├── mikrotik-safe/          # Safe mode e RouterOS v6 vs v7
 │   ├── ftth-huawei-zte-fiberhome/ # OLTs e telemetria GPON
