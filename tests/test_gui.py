@@ -5,14 +5,13 @@ import pytest
 # Ensure headless offscreen for test runner
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
-from PySide6.QtCore import QPoint, QMimeData, QUrl
-from PySide6.QtGui import QDropEvent
+from PySide6.QtCore import QPoint
 from PySide6.QtWidgets import QApplication
 
 from core.session import BallState, SessionManager
 from gui.widget import FloatingBallWidget
-from gui.chat_panel import ChatPanel
 from gui.approval_pill import ApprovalPillWidget
+from main import launch_native_terminal
 
 
 @pytest.fixture(scope="session")
@@ -73,10 +72,10 @@ def test_approval_pill_widget(qapp):
     assert received_actions[0][0] == "safe_mode"
 
 
-def test_chat_panel_instantiation(qapp):
-    session = SessionManager()
-    panel = ChatPanel(session)
-    assert panel.windowTitle() == "HarnessISP - Painel NOC"
-
-    panel.append_message("user", "ping 1.1.1.1")
-    panel.append_message("assistant", "Ping OK", risk="LOW")
+def test_launch_native_terminal_mock(monkeypatch, tmp_path):
+    # Test that launch_native_terminal doesn't crash
+    called = []
+    import subprocess
+    monkeypatch.setattr(subprocess, "Popen", lambda *args, **kwargs: called.append(args))
+    launch_native_terminal(tmp_path)
+    assert len(called) > 0
