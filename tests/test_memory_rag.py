@@ -27,3 +27,25 @@ def test_sqlite_fts5_rag(tmp_path):
     res_pop = rag.search("CCR2116")
     assert len(res_pop) >= 1
     assert "POP Central" in res_pop[0]["title"]
+
+
+def test_sync_markdown_directory(tmp_path):
+    wiki_dir = tmp_path / "wiki"
+    sops_dir = wiki_dir / "sops"
+    sops_dir.mkdir(parents=True)
+
+    md_file = sops_dir / "sop_lockout.md"
+    md_file.write_text(
+        "---\ntitulo: Reversao de Lockout\nimpacto: critico\ncategoria: sops\n---\n# Rollback\nProcedimento seguro.",
+        encoding="utf-8",
+    )
+
+    db_file = tmp_path / "test_wiki.db"
+    rag = MemoryRAG(db_file)
+    synced = rag.sync_markdown_directory(wiki_dir)
+    assert synced == 1
+
+    results = rag.search("Lockout")
+    assert len(results) >= 1
+    assert "Reversao de Lockout" in results[0]["title"]
+    assert results[0]["impact"] == "critico"

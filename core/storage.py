@@ -31,6 +31,7 @@ class StorageManager:
             self.root = self._detect_default_workspace()
 
         self.memory_dir = self.root / "memory"
+        self.wiki_dir = self.root / "wiki"
         self.backups_dir = self.root / "backups"
         self.scripts_dir = self.root / "scripts"
         self.logs_dir = self.root / "logs"
@@ -44,7 +45,7 @@ class StorageManager:
 
     def initialize(self) -> None:
         """Create necessary workspace folders and baseline config if missing."""
-        for folder in (self.memory_dir, self.backups_dir, self.scripts_dir, self.logs_dir, self.vault_dir):
+        for folder in (self.memory_dir, self.wiki_dir, self.backups_dir, self.scripts_dir, self.logs_dir, self.vault_dir):
             folder.mkdir(parents=True, exist_ok=True)
 
         if not self.config_file.exists():

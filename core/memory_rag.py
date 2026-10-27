@@ -78,6 +78,47 @@ class MemoryRAG:
         """Index a POP, router role, or circuit detail."""
         return self.add_lesson(title=f"POP: {pop_name}", lesson=details, category="topology", impact="baixo")
 
+    def sync_markdown_directory(self, wiki_dir: Path) -> int:
+        """Scan a markdown wiki directory and index all .md notes into SQLite FTS5."""
+        wiki_path = Path(wiki_dir)
+        if not wiki_path.exists():
+            return 0
+
+        synced = 0
+        for md_file in wiki_path.rglob("*.md"):
+            try:
+                content = md_file.read_text(encoding="utf-8")
+                category = md_file.parent.name
+                title = md_file.stem.replace("_", " ").title()
+
+                # Basic YAML frontmatter parser
+                frontmatter_match = re.match(r"^---\s*\n(.*?)\n---\s*\n(.*)$", content, re.DOTALL)
+                impact = "medio"
+                body = content
+
+                if frontmatter_match:
+                    fm_text, body = frontmatter_match.groups()
+                    for line in fm_text.splitlines():
+                        if ":" in line:
+                            k, v = line.split(":", 1)
+                            k, v = k.strip().lower(), v.strip().strip("'\"")
+                            if k == "titulo" and v:
+                                title = v
+                            elif k == "impacto" and v:
+                                impact = v
+                            elif k == "categoria" and v:
+                                category = v
+
+                # Use relative path as distinct title or key
+                rel_path = md_file.relative_to(wiki_path).as_posix()
+                full_title = f"{title} ({rel_path})"
+                self.add_lesson(title=full_title, lesson=body.strip(), category=category, impact=impact)
+                synced += 1
+            except Exception:
+                continue
+
+        return synced
+
     def search(self, query: str, limit: int = 5) -> list[dict[str, Any]]:
         """Perform full-text search using SQLite FTS5."""
         # Replace punctuation (like hyphens) with spaces so terms tokenize correctly
