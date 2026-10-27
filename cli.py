@@ -83,11 +83,6 @@ def cmd_audit() -> None:
 
 def cmd_chat() -> None:
     """Start official Google Antigravity CLI session in the current terminal."""
-    # Renderiza mascote Coucou Companion TUI no terminal
-    banner_script = Path(__file__).resolve().parent / "scripts" / "mascot_banner.py"
-    if banner_script.exists():
-        subprocess.run([sys.executable, str(banner_script)], check=False)
-
     agy_bin = shutil.which("agy") or os.path.expanduser("~/.local/bin/agy")
     if os.path.exists(agy_bin):
         os.execvp(agy_bin, [agy_bin])
